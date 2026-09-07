@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Triage — three levels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --f:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --f-disp:'Fraunces',Georgia,serif;
+  --bg:#eef3fa; --ink:#22364f; --dim:#5a6d87; --faint:#5f6d8f;
+  --glass:rgba(255,255,255,.72); --line:rgba(88,122,163,.55);
+  --solid:#ffffff;
+  --shadow:0 1px 2px rgba(34,54,79,.06),0 4px 12px rgba(34,54,79,.06);
+  --gold:#a97400; --s:1;
+}
+html[data-theme="dark"]{
+  --bg:#121a2e; --ink:#eaf0ff; --dim:#9aa8c7; --faint:#8497ad;
+  --glass:rgba(255,255,255,.045); --line:rgba(255,255,255,.22);
+  --solid:#1a2440;
+  --shadow:none; --gold:#ffc83d;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);
+     -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;overflow:hidden}
+
+.bar{flex:0 0 auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+     padding:8px 16px;border-bottom:1px solid var(--line)}
+h1{font-family:var(--f-disp);font-weight:600;font-size:16px;margin:0 6px 0 0;white-space:nowrap}
+button,select{font-family:var(--f);font-size:12.5px;font-weight:500;color:var(--ink);
+       background:var(--glass);border:1px solid var(--line);border-radius:8px;
+       padding:6px 10px;cursor:pointer;transition:background .15s}
+button:hover{background:rgba(125,155,190,.16)}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lv{display:flex;gap:4px;padding:3px;background:rgba(125,155,190,.12);border-radius:10px}
+.lv button{border:none;background:transparent;padding:5px 12px}
+.lv button.on{background:var(--ink);color:var(--bg)}
+.spacer{flex:1}
+.count{color:var(--faint);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.tally{flex:0 0 auto;display:flex;gap:5px;flex-wrap:wrap;align-items:center;
+       padding:7px 16px;border-bottom:1px solid var(--line)}
+.tchip{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+       padding:3px 9px 3px 4px;border-radius:99px;background:rgba(125,155,190,.12);
+       border:1px solid var(--line);cursor:default}
+.tdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.tn{font-variant-numeric:tabular-nums;color:var(--dim);min-width:12px;text-align:right}
+.tlabel{color:var(--ink)}
+.tnote{color:var(--faint);font-size:11.5px;margin-left:6px}
+
+.board{flex:1 1 auto;min-height:0;padding:11px 16px;
+       column-count:2;column-gap:13px;column-fill:balance}
+.card{break-inside:avoid;position:relative;display:flex;gap:8px;align-items:flex-start;
+      background:var(--glass);border:1.5px solid var(--line);
+      border-left:5px solid var(--bd,transparent);border-radius:11px;
+      padding:calc(8px*var(--s)) calc(11px*var(--s));margin:0 0 7px;
+      box-shadow:var(--shadow);cursor:pointer;
+      transition:transform .15s,background .15s}
+.card:hover{transform:translateX(3px);background:rgba(125,155,190,.10)}
+.card.drag{opacity:.3}
+.card.over{border-top:3px solid var(--gold)}
+.card.sel{outline:2px solid var(--gold);outline-offset:1px}
+
+.num{flex:0 0 auto;min-width:calc(22px*var(--s));height:calc(22px*var(--s));padding:0 5px;
+     border-radius:99px;display:grid;place-items:center;
+     font-size:calc(12px*var(--s));font-weight:600;font-variant-numeric:tabular-nums;
+     background:rgba(125,155,190,.18);color:var(--dim)}
+.txt{flex:1;min-width:0;font-size:calc(13.5px*var(--s));line-height:1.36;outline:none}
+.txt[contenteditable="true"]{background:rgba(125,155,190,.12);border-radius:5px;padding:2px 5px;margin:-2px -5px}
+.more{color:var(--faint);font-weight:600}
+.tags{flex:0 0 auto;display:flex;gap:4px;align-items:center;align-self:center}
+.chip{font-size:calc(9.5px*var(--s));font-weight:600;letter-spacing:.03em;text-transform:uppercase;
+      padding:3px 7px;border-radius:99px;color:#fff;white-space:nowrap}
+.chip.pick{background:transparent!important;color:var(--dim);border:1px dashed var(--line)}
+.mark{font-size:calc(12px*var(--s));font-weight:700;line-height:1}
+.mv{display:none;flex-direction:column;gap:2px;flex:0 0 auto;align-self:center}
+.card:hover .mv{display:flex}
+.mv button{padding:0 5px;font-size:9px;line-height:1.5;color:var(--faint);border-radius:4px}
+
+.drawer{flex:0 0 auto;border-top:1px solid var(--line);background:var(--glass);
+        padding:0 16px;max-height:0;overflow:auto;transition:max-height .22s ease,padding .22s ease}
+.drawer.open{max-height:300px;padding:12px 16px}
+.dhead{display:flex;gap:10px;align-items:baseline;margin-bottom:7px;flex-wrap:wrap}
+.dnum{font-size:13px;font-weight:600;color:var(--dim)}
+.dtxt{font-size:15px;font-weight:500;flex:1;min-width:220px;outline:none}
+.dx{font-size:13.5px;color:var(--dim);font-style:italic;margin:-2px 0 9px;line-height:1.5;outline:none;max-width:104ch}
+.dx:empty{display:none}
+.dx[contenteditable="true"]{background:rgba(125,155,190,.12);border-radius:6px;padding:4px 7px;font-style:normal;display:block;min-height:1em}
+.opts{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.opt{font-size:12.5px;padding:6px 11px;border-radius:8px;border:1px solid var(--line);
+     background:var(--glass);cursor:pointer;display:flex;align-items:center;gap:7px}
+.opt .tdot{width:8px;height:8px}
+.opt.picked{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.opt.correct{outline:2px solid #35a65a;outline-offset:1px}
+.dnote{font-size:14.5px;line-height:1.55;color:var(--dim);outline:none;max-width:104ch;display:none}
+.reveal .dnote,.editing .dnote{display:block}
+.dnote[contenteditable="true"]{background:rgba(125,155,190,.12);border-radius:6px;padding:6px 9px}
+.drefs{display:none;margin-top:8px;font-size:12.5px;line-height:1.6}
+.reveal .drefs{display:block}
+.drefs a{color:var(--gold);text-decoration:none;border-bottom:1px dotted var(--gold);margin-right:14px;white-space:nowrap}
+.drefs a:hover{border-bottom-style:solid}
+.dclose{margin-left:auto}
+
+/* ---------- modals ---------- */
+.ovl{position:fixed;inset:0;background:rgba(10,16,30,.55);display:none;
+     align-items:center;justify-content:center;z-index:50;padding:20px}
+.ovl.open{display:flex}
+.modal{background:var(--solid);border:1px solid var(--line);border-radius:16px;
+       max-width:720px;width:100%;max-height:86vh;overflow:auto;padding:26px 30px;
+       box-shadow:0 18px 60px rgba(10,16,30,.35)}
+.modal h2{font-family:var(--f-disp);font-weight:600;font-size:23px;margin:0 0 12px}
+.modal h3{font-size:14px;margin:18px 0 6px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em}
+.modal p{font-size:14.5px;line-height:1.6;color:var(--dim);margin:0 0 10px}
+.modal p b{color:var(--ink)}
+.modal a{color:var(--gold);text-decoration:none;border-bottom:1px dotted var(--gold)}
+.modal a:hover{border-bottom-style:solid}
+.mfoot{display:flex;justify-content:flex-end;margin-top:16px}
+.small{font-size:12px;color:var(--faint);line-height:1.55}
+#qrbox{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.qrcard{text-align:center;flex:0 0 auto}
+.qrcard .code{background:#fff;padding:12px;border-radius:12px;line-height:0;display:inline-block}
+.qrcard .lab{font-size:13.5px;font-weight:600;margin-top:9px;color:var(--ink)}
+.qrcard .sub{font-size:11.5px;color:var(--faint)}
+#qrurl{font-size:12px;word-break:break-all;color:var(--faint);text-align:center}
+.credit{margin-left:auto;display:flex;align-items:center;gap:9px;flex:0 0 auto;
+        font-size:11.5px;color:var(--faint);white-space:nowrap}
+.credit img{height:26px;width:auto;display:block}
+.credit .noc{display:none}
+@media print{.bar,.mv,.drawer{display:none!important}
+  .tally{border:none;padding-top:0}.tally .tchip,.tally .tnote{display:none}
+  .board{column-fill:auto}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>Triage</h1>
+  <button id="bWhy">Why triage?</button>
+  <span class="lv" id="lv"></span>
+  <button id="bReveal">Reveal</button>
+  <button id="bClear">Clear picks</button>
+  <button id="bShuffle">Shuffle</button>
+  <button id="bEdit">Edit</button>
+  <span style="display:flex;gap:3px"><button id="bSm">A−</button><button id="bLg">A+</button></span>
+  <span class="spacer"></span>
+  <span class="count" id="count"></span>
+  <button id="bShare">Share / QR</button>
+  <button id="bAdd">+ Add</button>
+  <button id="bExport">Export</button>
+  <button id="bImport">Import</button>
+  <button id="bReset">Reset</button>
+  <button id="bTheme">Dark</button>
+</div>
+
+<div class="tally" id="tally"></div>
+<div class="board" id="board"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead">
+    <span class="dnum" id="dnum"></span>
+    <span class="dtxt" id="dtxt"></span>
+    <button id="dDel">Delete</button>
+    <button class="dclose" id="dClose">Close</button>
+  </div>
+  <div class="dx" id="dx"></div>
+  <div class="opts" id="dopts"></div>
+  <div class="dnote" id="dnote"></div>
+  <div class="drefs" id="drefs"></div>
+</div>
+
+<!-- Why triage? -->
+<div class="ovl" id="whyOvl">
+  <div class="modal">
+    <h2>Why do GPs triage at all?</h2>
+    <p><b>Demand exceeds capacity, every single day.</b> A typical practice list generates more requests for contact than there are appointments. If every patient simply self-booked, the book would fill with whoever rang fastest at 8am — and the routine slots would be gone before the person having their stroke got through. Triage exists so that <b>clinical need, not queueing speed, decides who is seen first</b>.</p>
+    <p><b>It happens in more ways than students expect.</b> Telephone-first models, online forms (eConsult, AccuRx), video consulting (<a href="https://www.nearme.scot" target="_blank" rel="noopener">Near Me</a> in Scotland), pharmacy pathways (<a href="https://www.nhsinform.scot/care-support-and-rights/nhs-services/pharmacy/nhs-pharmacy-first-scotland" target="_blank" rel="noopener">Pharmacy First Scotland</a>), and the receptionist's care-navigation script are all triage. Different practices weight these very differently, and all of them are defensible.</p>
+    <p><b>The evidence is messier than the enthusiasm.</b> The <a href="https://pubmed.ncbi.nlm.nih.gov/25098487/" target="_blank" rel="noopener">ESTEEM trial (Lancet, 2014)</a> found telephone triage <i>redistributes</i> workload rather than reducing it. An evaluation of "telephone-first" practices (<a href="https://www.bmj.com/content/358/bmj.j4197" target="_blank" rel="noopener">BMJ, 2017</a>) found large practice-to-practice variation and no overall saving. Triage is done because it is <i>safer and fairer</i>, not because it is cheaper.</p>
+    <p><b>And it is a clinical risk decision.</b> Every call you park until tomorrow is a judgement made on incomplete information, usually without seeing the patient. That is why it is one of the harder things a GP does — and why it belongs in your training now. The GMC's <a href="https://www.gmc-uk.org/professional-standards/good-medical-practice-2024" target="_blank" rel="noopener">Good Medical Practice (2024)</a> expects you to recognise and work within the limits of that judgement.</p>
+    <h3>The exercise</h3>
+    <p>Level 1: how urgent is each call? Level 2: one action each — you cannot do everything. Level 3: the messy ones, where experienced GPs disagree. After you commit, <b>Reveal</b> shows a reasoned answer with references.</p>
+    <p class="small">All cases are fictional and written for teaching. References orient you to the evidence; they are not a substitute for local pathways or your own senior review. Answers at Level 3 are defensible positions, not the only correct ones.</p>
+    <div class="mfoot"><button data-close>Close</button></div>
+  </div>
+</div>
+
+<!-- Share / QR -->
+<div class="ovl" id="shareOvl">
+  <div class="modal" style="max-width:900px">
+    <h2>Send this to the room</h2>
+    <p id="shareMsg"></p>
+    <div id="qrbox"></div>
+    <p class="small" id="qrurl"></p>
+    <p class="small">Each code opens the tool on that level in <b>student mode</b> — no Reveal button, no editing. Answers stay yours until you show them on the projector, or share the answers link afterwards.</p>
+    <div class="mfoot"><button id="bAnsLink">Copy answers link</button>&nbsp;<button id="bCopy">Copy student link</button>&nbsp;<button data-close>Close</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ============ credit ============ */
+const AUTHOR = 'Andrew Gatenby';
+const YEAR   = new Date().getFullYear();
+/* University of Aberdeen crest.
+   Leave as '' and only the copyright line shows.
+   To add it: get the approved crest file from the University's brand/marketing
+   team (do NOT use one pulled off a web search — it is a protected mark with
+   usage rules), convert it to a data URL, and paste it between the quotes:
+       const CREST_SRC = 'data:image/png;base64,iVBORw0KGgo...';
+   A plain filename works too if the image sits next to this file:
+       const CREST_SRC = 'aberdeen-crest.png';                              */
+const CREST_SRC = '';
+
+/* ============ palette (from the Curriculum Atlas) ============ */
+const C={red:'#c25a48',gold:'#e0a32e',teal:'#17a2a0',green:'#35a65a',violet:'#7c8cff',
+         purple:'#b569c4',pink:'#d6457c',ochre:'#c9a24a',slate:'#6c7a93',deep:'#33506e'};
+
+/* Common references */
+const R={
+ ng12:{t:'NICE NG12 — Suspected cancer',u:'https://www.nice.org.uk/guidance/ng12'},
+ ng19:{t:'NICE NG19 — Diabetic foot',u:'https://www.nice.org.uk/guidance/ng19'},
+ ng31:{t:'NICE NG31 — Care of dying adults',u:'https://www.nice.org.uk/guidance/ng31'},
+ ng95:{t:'NICE NG95 — Lyme disease',u:'https://www.nice.org.uk/guidance/ng95'},
+ ng126:{t:'NICE NG126 — Ectopic pregnancy & miscarriage',u:'https://www.nice.org.uk/guidance/ng126'},
+ ng128:{t:'NICE NG128 — Stroke & TIA',u:'https://www.nice.org.uk/guidance/ng128'},
+ ng136:{t:'NICE NG136 — Hypertension',u:'https://www.nice.org.uk/guidance/ng136'},
+ ng143:{t:'NICE NG143 — Fever under 5s (traffic lights)',u:'https://www.nice.org.uk/guidance/ng143'},
+ ng158:{t:'NICE NG158 — VTE: diagnosis & management',u:'https://www.nice.org.uk/guidance/ng158'},
+ ng185:{t:'NICE NG185 — Acute coronary syndromes',u:'https://www.nice.org.uk/guidance/ng185'},
+ ng214:{t:'NICE NG214 — Health care for people experiencing homelessness',u:'https://www.nice.org.uk/guidance/ng214'},
+ ng228:{t:'NICE NG228 — Subarachnoid haemorrhage',u:'https://www.nice.org.uk/guidance/ng228'},
+ ng240:{t:'NICE NG240 — Meningitis & meningococcal disease',u:'https://www.nice.org.uk/guidance/ng240'},
+ ng245:{t:'BTS/NICE/SIGN NG245 — Asthma (2024)',u:'https://www.nice.org.uk/guidance/ng245'},
+ cg103:{t:'NICE CG103 — Delirium',u:'https://www.nice.org.uk/guidance/cg103'},
+ cg115:{t:'NICE CG115 — Alcohol-use disorders',u:'https://www.nice.org.uk/guidance/cg115'},
+ cg124:{t:'NICE CG124 — Hip fracture',u:'https://www.nice.org.uk/guidance/cg124'},
+ cg150:{t:'NICE CG150 — Headaches in over-12s',u:'https://www.nice.org.uk/guidance/cg150'},
+ cg183:{t:'NICE CG183 — Drug allergy',u:'https://www.nice.org.uk/guidance/cg183'},
+ ces:{t:'GIRFT National Suspected Cauda Equina Pathway (2023)',u:'https://www.pslhub.org/learn/patient-safety-in-health-and-care/conditions/rare-diseases/girft-spinal-surgery-national-suspected-cauda-equina-syndrome-ces-pathway-february-2023-r9019/'},
+ gmp:{t:'GMC — Good Medical Practice (2024)',u:'https://www.gmc-uk.org/professional-standards/good-medical-practice-2024'},
+ pfs:{t:'NHS Pharmacy First Scotland',u:'https://www.nhsinform.scot/care-support-and-rights/nhs-services/pharmacy/nhs-pharmacy-first-scotland'},
+ fit:{t:'DWP — Fit note guidance',u:'https://www.gov.uk/government/collections/fit-note'},
+ preg:{t:'Pregabalin: Class C controlled drug (2019)',u:'https://www.gov.uk/government/news/pregabalin-and-gabapentin-to-be-controlled-as-class-c-drugs'},
+ sca76:{t:'Serious Crime Act 2015 s76 — coercive control',u:'https://www.legislation.gov.uk/ukpga/2015/9/section/76'},
+ awi:{t:'Adults with Incapacity (Scotland) Act 2000',u:'https://www.legislation.gov.uk/asp/2000/4'},
+ asp:{t:'Adult Support & Protection (Scotland) Act 2007',u:'https://www.legislation.gov.uk/asp/2007/10'},
+ warf:{t:'BSH — Warfarin guideline, 4th ed. (Keeling 2011)',u:'https://pubmed.ncbi.nlm.nih.gov/21671894/'},
+ esteem:{t:'ESTEEM trial — telephone triage (Lancet 2014)',u:'https://pubmed.ncbi.nlm.nih.gov/25098487/'},
+ cks_st:{t:'NICE CKS — Sore throat (acute)',u:'https://cks.nice.org.uk/topics/sore-throat-acute/'},
+ cks_ge:{t:'NICE CKS — Gastroenteritis',u:'https://cks.nice.org.uk/topics/gastroenteritis/'},
+ cks_sc:{t:'NICE CKS — Scabies',u:'https://cks.nice.org.uk/topics/scabies/'},
+ cks:{t:'NICE Clinical Knowledge Summaries',u:'https://cks.nice.org.uk/topics/'}
+};
+
+/* ============ the three levels ============ */
+const LEVELS=[
+{
+ name:'1 · How urgent?',
+ blurb:'Put them in order, then give each one an urgency band. Click a card for more detail.',
+ options:[
+  {id:'now',    s:'999',        label:'Emergency — 999 now', c:C.red},
+  {id:'hour',   s:'1 hour',     label:'Within the hour', c:C.gold},
+  {id:'today',  s:'Same day',   label:'Same day',        c:C.teal},
+  {id:'routine',s:'Routine',    label:'Routine',         c:C.green}
+ ],
+ calls:[
+{t:"Baby, 7 months. Feverish since yesterday, floppy, not feeding. Mum says a rash doesn't fade under a glass.",a:'now',
+   n:"999. Non-blanching rash with fever and reduced feeding in an infant — high-risk features on every traffic-light system. Nothing else on this list outranks it.",r:[R.ng240,R.ng143]},
+  {t:"Man in his 70s. Right arm weak and speech slurred 30 minutes ago. All settled now — he feels completely fine.",a:'now',
+   n:"999 despite resolution. A resolved deficit is a TIA and stroke risk is front-loaded into the first days after. 'Better now' is the trap.",r:[R.ng128]},
+{t:"Teenager. Sore throat four days, now can't swallow their own saliva, drooling, voice sounds muffled.",a:'hour',
+   n:"Urgent same-day. Drooling and a muffled voice suggest something beyond tonsillitis and a potentially threatened airway.",r:[R.cks_st]},
+{t:"Woman in her 60s, diabetic. Foot ulcer now smelly, redness spreading up the leg. Feels shivery.",a:'hour',
+   n:"Urgent same-day. Spreading infection with systemic symptoms in a diabetic foot escalates fast and needs seeing, not describing.",r:[R.ng19]},
+  {t:"Woman in her 80s. 'Off her legs' since yesterday, more confused than usual, hasn't passed much urine.",a:'hour',
+   n:"Urgent same-day, likely a visit. New confusion in an older person is delirium until shown otherwise — a presentation, not a personality.",r:[R.cg103]},
+  {t:"Man in his 70s, smoker. Cough three weeks. Coughed up a small amount of blood once yesterday.",a:'today',
+   n:"Same-day call, then urgent suspected-cancer referral and a chest X-ray. Not an emergency — but the commonest error is filing it as routine.",r:[R.ng12]},
+{t:"Child of 6 has a rash.",x:"On the phone: two days of pink spots on the trunk, blanches when pressed, mild cold symptoms, eating and playing normally. No fever today.",a:'today',
+   n:"Same-day telephone advice. 'Child has a rash' means nothing until you ask the triage questions — is the child well, does it blanch, is there fever? With this detail: viral exanthem, advice and safety-netting. The teaching point is that the four words in the message and the truth behind them are different sizes.",r:[R.ng143]},
+  {t:"Rash after starting an antibiotic.",x:"Woman in her 20s, second day of amoxicillin for a chest infection. Itchy raised rash on arms and trunk since this morning. No lip or tongue swelling, no wheeze, swallowing normally.",a:'today',
+   n:"Same-day call. The question that matters is the airway one — asked and answered here, which is what downgrades it from 999. Stop the drug, document the allergy properly, plan an alternative. Mislabelling this as 'penicillin allergy — never again' without detail causes decades of second-line antibiotics.",r:[R.cg183]},
+  {t:"Itchy for weeks. Thinks it's scabies.",x:"Man in his 30s. Intensely itchy for three weeks, worse at night. Partner now itching too. Burrows visible between fingers. Otherwise well.",a:'routine',
+   n:"Routine — but treat the household, not just the caller, and pharmacy can often handle it. Itch for weeks is miserable and feels urgent to the patient; it is not clinically urgent. Distinguishing distress from danger is the whole skill of triage.",r:[R.cks_sc,R.pfs]},
+{t:"Woman in her 50s. Wants the result of a scan she had last week. Says she's anxious about it.",a:'routine',
+   n:"Routine, but don't let it drift. Administrative on the surface; the anxiety is the part that has a cost.",r:[R.gmp]}
+ ]
+},
+{
+ name:'2 · What do you actually do?',
+ blurb:'One action each. You have one duty doctor, one visit slot and a handful of appointments — you cannot do all of these.',
+ options:[
+  {id:'999',    s:'999',        label:'Reception calls 999 now',        c:C.red},
+  {id:'ed',     s:'A&E',        label:'Straight to A&E, own transport', c:C.pink},
+  {id:'ring',   s:'Ring back',  label:'Duty doctor rings within the hour',c:C.gold},
+  {id:'visit',  s:'Visit',      label:'Home visit today',               c:C.purple},
+  {id:'see',    s:'See today',  label:'Face-to-face appointment today', c:C.teal},
+  {id:'dn',     s:'District N', label:'District nurse today',           c:C.violet},
+  {id:'nurse',  s:'Prac nurse', label:'Practice nurse / HCA',           c:C.ochre},
+  {id:'pharm',  s:'Pharmacy',   label:'Community pharmacy or self-care',c:C.green},
+  {id:'ref',    s:'Urgent ref', label:'Urgent referral, book routine review',c:C.deep},
+  {id:'admin',  s:'Admin',      label:'Reception or admin can deal with it',c:C.slate}
+ ],
+ calls:[
+  {t:"Man in his 60s. Crushing central chest pain, 30 minutes, grey and clammy. Still on the phone to reception.",a:'999',
+   n:"999 — and reception should not put him on hold to find a doctor. This is the one call where the receptionist acts before you do.",r:[R.ng185]},
+  {t:"Man in his 40s. Two weeks of back pain, now numb between the legs, can't start his stream. Can drive.",a:'ed',
+   n:"A&E now for emergency imaging. He doesn't need an ambulance — he needs to be somewhere with a scanner, quickly.",r:[R.ces]},
+  {t:"Woman in her 80s, housebound. Catheter has stopped draining since this morning. Uncomfortable but not unwell, no fever.",a:'dn',
+   n:"District nurse today. A blocked catheter is a nursing job — using a GP visit slot for it costs you the visit you'll need later.",r:[R.cks]},
+  {t:"Man in his 70s, housebound. More confused since yesterday, not eating, daughter can't get him up.",a:'visit',
+   n:"Home visit today. This is what the visit slot is for — someone who cannot come to you and needs examining.",r:[R.cg103]},
+  {t:"Woman in her 60s, diabetic. Foot ulcer redder and smelly, spreading up the leg, feels shivery.",a:'see',
+   n:"Face-to-face today. You need to look at it and mark the edge. Do not manage a spreading diabetic foot infection down a telephone.",r:[R.ng19]},
+{t:"Woman in her 50s. Found a firm breast lump three days ago. No pain, no skin change.",a:'ref',
+   n:"Urgent referral. She needs examining, but the referral clock is what matters — don't let 'come back in a fortnight' happen here.",r:[R.ng12]},
+  {t:"Woman in her 30s. Two days of burning on passing urine. No fever, no back pain, not pregnant.",a:'pharm',
+   n:"Community pharmacy. Uncomplicated lower urinary symptoms in a non-pregnant woman are a Pharmacy First pathway in Scotland.",r:[R.pfs]},
+{t:"Child of 4. Temperature 39 since this morning, miserable but drinking, playing between doses, rash blanches.",a:'ring',
+   n:"Duty doctor rings within the hour. Most of these settle — but you want to hear the parent describe it yourself before deciding.",r:[R.ng143]},
+{t:"Woman in her 60s. Home blood pressure readings have been running high all week. Feels completely well.",a:'nurse',
+   n:"Practice nurse. Repeat measurements and a proper review — this is a protocolised job that does not need a GP appointment.",r:[R.ng136]},
+  {t:"Man in his 50s. Wants his sick note extended. Back pain unchanged, already assessed, no new symptoms.",a:'admin',
+   n:"Admin. Recognising what doesn't need clinical time is part of triage. The skill is spotting it fast and not feeling guilty.",r:[R.fit]},
+]
+},
+{
+ name:'3 · The messy ones',
+ blurb:'Nothing here is clean. Pick one action, then read the answer — these are the calls where experienced GPs disagree.',
+ options:[
+  {id:'999',    s:'999',        label:'Reception calls 999 now',        c:C.red},
+  {id:'ed',     s:'A&E',        label:'Straight to A&E or acute unit',  c:C.pink},
+  {id:'ring',   s:'Ring back',  label:'Duty doctor rings within the hour',c:C.gold},
+  {id:'visit',  s:'Visit',      label:'Home visit today',               c:C.purple},
+  {id:'see',    s:'See today',  label:'Face-to-face appointment today', c:C.teal},
+  {id:'discuss',s:'Discuss',    label:'Ring the specialist on call',    c:C.deep},
+  {id:'pharmst',s:'Pharmacist', label:'Practice pharmacist',            c:C.violet},
+  {id:'chase',  s:'Chase',      label:'Chase or escalate the referral', c:C.ochre},
+  {id:'safeg',  s:'Safeguard',  label:'Safeguarding or social care',    c:C.slate},
+  {id:'routine',s:'Routine',    label:'Routine appointment',            c:C.green}
+ ],
+ calls:[
+  {t:"Man in his 30s, released from prison four days ago. Started on pregabalin inside. No discharge letter. Says he's withdrawing and wants a prescription today.",a:'see',
+   n:"See today — but the appointment is not about the prescription. You have no record of dose, indication or duration, and pregabalin is a Class C controlled drug with an established diversion market. Do not issue blind; do not abruptly stop something he may genuinely be dependent on. Same-day assessment, contact the prison health team, involve the practice pharmacist.",r:[R.preg,R.gmp]},
+  {t:"One-year-old. Tick bite noticed a week ago after a walk. Now a spreading red rash around the site. Child is well, feeding normally, no fever.",a:'see',
+   n:"See today. An expanding rash at a tick bite site is erythema migrans until proven otherwise, and NICE says treat early Lyme on clinical appearance — there is no test to wait for. Well child, but the clock matters.",r:[R.ng95]},
+  {t:"Woman in her 50s. Referred to gynaecology two months ago for postmenopausal bleeding. No appointment yet. Still bleeding. Angry with reception.",a:'chase',
+   n:"Chase and escalate the referral today, and check it went on the urgent suspected-cancer pathway — postmenopausal bleeding belongs there. The anger is the least important part of the call and the easiest to react to.",r:[R.ng12]},
+  {t:"Podiatrist rings. Diabetic patient, ulcer probing to bone, worried about osteomyelitis. Patient feels fine and doesn't want to come in.",a:'discuss',
+   n:"Ring the diabetic foot service today. Probe-to-bone is a strong predictor of osteomyelitis, and 'feels fine' is expected — neuropathy removes the symptom that would otherwise drive urgency. Do not let the patient's reassurance become yours.",r:[R.ng19]},
+{t:"Care home rings about a resident in their 90s on an end-of-life plan. Breathing has changed, staff are distressed, family are on their way.",a:'visit',
+   n:"Visit today. The clinical situation may need nothing changed; the distress does. Anticipatory medication, a conversation with the family and clear documentation are the intervention here.",r:[R.ng31]},
+{t:"Mother rings about her 7-year-old — tummy pains most school mornings for a month. Fine at weekends. She wants blood tests.",a:'routine',
+   n:"Routine appointment, with the child present and time booked. Organic causes need excluding, but the pattern is the history. Ordering the tests she asked for without seeing the child answers the wrong question.",r:[R.cks]},
+{t:"Woman in her 30s. Rings about contraception. Mentions in passing that her partner checks her phone and won't let her drive.",a:'safeg',
+   n:"Safeguarding. She rang about contraception; she disclosed controlling behaviour — a criminal offence under the Serious Crime Act, and in Scotland the Domestic Abuse (Scotland) Act 2018. This needs a same-day private conversation and a careful record, not a note in passing.",r:[R.sca76,R.gmp]},
+  {t:"Man in his 80s on warfarin. INR back today at 8.5. No bleeding. Lives alone, rural, no transport, phone reception poor.",a:'ring',
+   n:"Ring back within the hour. A high INR without bleeding is managed with withholding and oral vitamin K per BSH guidance — but the real risk here is social, not haematological. Whether home management is safe depends on things you can only find out by asking.",r:[R.warf]},
+  {t:"Woman in her 60s. Two weeks of feeling 'not right' after a viral illness. No specific symptoms. Sixth call this month about various things.",a:'routine',
+   n:"Routine — but book a long appointment and read the whole record first. Frequent attendance blunts everyone's alarm, which is exactly when something gets missed. The answer is more time, not less.",r:[R.cks,R.gmp]},
+  {t:"Ambulance service rings. Patient in their 70s declined conveyance after a fall. Crew concerned, patient has capacity and refuses. They want a GP to 'sort it'.",a:'discuss',
+   n:"Discuss with the crew now, while they are still there. A capacitous refusal cannot be overridden — in Scotland the Adults with Incapacity Act only bites if capacity is genuinely absent. Agree what happens if things change, and document the conversation.",r:[R.awi,R.gmp]}
+ ]
+}
+];
+
+const KEY='triage.v5';
+const P=new URLSearchParams(location.search);
+const STUDENT = P.get('student')==='1';
+const ANSWERS = P.get('answers')==='1';
+const START_L = Math.min(2, Math.max(0, (parseInt(P.get('level'))||1)-1));
+let L=START_L, data=[], picks=[], reveal=false, editing=false, dragFrom=null, sel=null, scale=1, pref=1, qrDone=false;
+
+function opts(){return LEVELS[L].options;}
+function opt(id){return opts().find(o=>o.id===id);}
+function dkey(){return KEY+'.d'+L;}
+
+function load(){
+  try{const s=localStorage.getItem(dkey());data=s?JSON.parse(s):structuredClone(LEVELS[L].calls);}
+  catch(e){data=structuredClone(LEVELS[L].calls);}
+  picks=new Array(data.length).fill(null);
+}
+function save(){try{localStorage.setItem(dkey(),JSON.stringify(data));}catch(e){}}
+function apply(v){scale=Math.min(1.6,Math.max(.55,v));document.documentElement.style.setProperty('--s',scale.toFixed(2));}
+function setPref(v){pref=Math.min(1.6,Math.max(.55,v));try{localStorage.setItem(KEY+'.s',pref);}catch(e){}refit();}
+function refit(){apply(pref);autofit();}
+function autofit(){const b=document.getElementById('board');let g=0;
+  while(b.scrollWidth>b.clientWidth+2&&scale>0.55&&g++<28){apply(scale-0.04);}}
+
+function render(){
+  document.getElementById('lv').innerHTML=LEVELS.map((x,i)=>
+    '<button data-lv="'+i+'" class="'+(i===L?'on':'')+'">'+x.name+'</button>').join('');
+
+  const b=document.getElementById('board');b.innerHTML='';
+  data.forEach((d,i)=>{
+    const pk=picks[i]?opt(picks[i]):null, ans=opt(d.a);
+    const el=document.createElement('div');
+    el.className='card'+(sel===i?' sel':'');el.draggable=true;el.dataset.i=i;
+    if(reveal&&ans) el.style.setProperty('--bd',ans.c);
+    else if(pk) el.style.setProperty('--bd',pk.c);
+    let tags='';
+    if(pk&&!reveal) tags+='<span class="chip pick">'+pk.s+'</span>';
+    if(reveal){
+      if(pk&&pk.id!==d.a) tags+='<span class="chip pick">'+pk.s+'</span><span class="mark" style="color:'+C.red+'">✗</span>';
+      else if(pk) tags+='<span class="mark" style="color:'+C.green+'">✓</span>';
+      if(ans) tags+='<span class="chip" style="background:'+ans.c+'">'+ans.s+'</span>';
+    }
+    el.innerHTML='<div class="num">'+(i+1)+'</div>'+
+      '<div class="txt" '+(editing?'contenteditable="true"':'')+'></div>'+
+      '<div class="tags">'+tags+'</div>'+
+      '<div class="mv"><button data-up>▲</button><button data-dn>▼</button></div>';
+    const tx=el.querySelector('.txt');tx.textContent=d.t;
+    if(d.x&&!editing){const m=document.createElement('span');m.className='more';m.textContent=' …';tx.appendChild(m);}
+    b.appendChild(el);
+  });
+
+  const counts={};picks.forEach(p=>{if(p)counts[p]=(counts[p]||0)+1;});
+  document.getElementById('tally').innerHTML=
+    opts().map(o=>'<span class="tchip"><span class="tdot" style="background:'+o.c+'"></span>'+
+      '<span class="tlabel">'+o.label+'</span><span class="tn">'+(counts[o.id]||0)+'</span></span>').join('')+
+    '<span class="tnote">'+LEVELS[L].blurb+'</span>'+
+    '<span class="credit">'+(CREST_SRC?'<img src="'+CREST_SRC+'" alt="University of Aberdeen">':'')+
+      '<span>© '+AUTHOR+' '+YEAR+'</span></span>';
+
+  document.getElementById('count').textContent=data.length+' calls';
+  document.body.classList.toggle('reveal',reveal);
+  document.body.classList.toggle('editing',editing);
+  refit();
+  if(sel!==null) openDrawer(sel,true);
+}
+
+function move(i,j){if(j<0||j>=data.length)return;
+  const[x]=data.splice(i,1);data.splice(j,0,x);
+  const[p]=picks.splice(i,1);picks.splice(j,0,p);
+  if(sel===i)sel=j;save();render();}
+
+function openDrawer(i,keep){
+  sel=i;const d=data[i];if(!d)return closeDrawer();
+  document.getElementById('dnum').textContent='#'+(i+1);
+  const dt=document.getElementById('dtxt');dt.textContent=d.t;dt.contentEditable=editing?'true':'false';
+  const dx=document.getElementById('dx');dx.textContent=d.x||'';dx.contentEditable=editing?'true':'false';
+  document.getElementById('dopts').innerHTML=opts().map(o=>
+    '<button class="opt'+(picks[i]===o.id?' picked':'')+((reveal&&o.id===d.a)?' correct':'')+'" data-opt="'+o.id+'">'+
+    '<span class="tdot" style="background:'+o.c+'"></span>'+o.label+'</button>').join('');
+  const n=document.getElementById('dnote');n.textContent=d.n;n.contentEditable=editing?'true':'false';
+  document.getElementById('drefs').innerHTML=(d.r&&d.r.length)?
+    d.r.map(x=>'<a href="'+x.u+'" target="_blank" rel="noopener">'+x.t+' ↗</a>').join(''):'';
+  document.getElementById('dDel').style.display=editing?'':'none';
+  document.getElementById('drawer').classList.add('open');
+  if(!keep)document.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',+c.dataset.i===i));
+  setTimeout(refit,240);
+}
+function closeDrawer(){sel=null;document.getElementById('drawer').classList.remove('open');
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));setTimeout(refit,240);}
+
+const board=document.getElementById('board');
+board.addEventListener('click',e=>{
+  const c=e.target.closest('.card');if(!c)return;const i=+c.dataset.i;
+  if(e.target.hasAttribute('data-up'))return move(i,i-1);
+  if(e.target.hasAttribute('data-dn'))return move(i,i+1);
+  if(e.target.classList.contains('txt')&&editing)return;
+  openDrawer(i);
+});
+board.addEventListener('input',e=>{if(!e.target.classList.contains('txt'))return;
+  data[+e.target.closest('.card').dataset.i].t=e.target.textContent;save();});
+board.addEventListener('dragstart',e=>{const c=e.target.closest('.card');if(!c)return;dragFrom=+c.dataset.i;c.classList.add('drag');});
+board.addEventListener('dragend',()=>document.querySelectorAll('.card').forEach(c=>c.classList.remove('drag','over')));
+board.addEventListener('dragover',e=>{e.preventDefault();const c=e.target.closest('.card');if(!c)return;
+  document.querySelectorAll('.card').forEach(x=>x.classList.remove('over'));c.classList.add('over');});
+board.addEventListener('drop',e=>{e.preventDefault();const c=e.target.closest('.card');
+  if(c&&dragFrom!==null)move(dragFrom,+c.dataset.i);dragFrom=null;});
+
+document.getElementById('lv').addEventListener('click',e=>{
+  const v=e.target.dataset.lv;if(v===undefined)return;
+  L=+v;sel=null;reveal=false;document.getElementById('bReveal').classList.remove('on');
+  closeDrawer();load();render();});
+
+document.getElementById('dopts').addEventListener('click',e=>{
+  const b=e.target.closest('[data-opt]');if(!b||sel===null)return;
+  picks[sel]=picks[sel]===b.dataset.opt?null:b.dataset.opt;render();});
+document.getElementById('dnote').addEventListener('input',e=>{if(sel!==null){data[sel].n=e.target.textContent;save();}});
+document.getElementById('dtxt').addEventListener('input',e=>{if(sel!==null){data[sel].t=e.target.textContent;save();}});
+document.getElementById('dx').addEventListener('input',e=>{if(sel!==null){data[sel].x=e.target.textContent;save();}});
+document.getElementById('dDel').onclick=()=>{if(sel===null)return;data.splice(sel,1);picks.splice(sel,1);save();closeDrawer();render();};
+document.getElementById('dClose').onclick=closeDrawer;
+
+document.getElementById('bReveal').onclick=e=>{reveal=!reveal;e.target.classList.toggle('on',reveal);render();};
+document.getElementById('bEdit').onclick=e=>{editing=!editing;e.target.classList.toggle('on',editing);render();};
+document.getElementById('bClear').onclick=()=>{picks=new Array(data.length).fill(null);render();};
+document.getElementById('bShuffle').onclick=()=>{closeDrawer();
+  for(let i=data.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));
+    [data[i],data[j]]=[data[j],data[i]];[picks[i],picks[j]]=[picks[j],picks[i]];}
+  save();render();};
+document.getElementById('bAdd').onclick=()=>{data.push({t:'New call — click Edit, then type here.',x:'',a:opts()[0].id,n:'What would you do, and why?',r:[]});
+  picks.push(null);save();render();openDrawer(data.length-1);};
+document.getElementById('bReset').onclick=()=>{if(confirm('Reset this level to its original calls? Your edits to it will be lost.')){
+  try{localStorage.removeItem(dkey());}catch(e){}sel=null;load();render();}};
+document.getElementById('bExport').onclick=()=>{const bl=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='triage-level'+(L+1)+'.json';a.click();};
+document.getElementById('bImport').onclick=()=>{const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+  inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{const j=JSON.parse(r.result);
+      if(Array.isArray(j)&&j.length){data=j;picks=new Array(data.length).fill(null);sel=null;save();render();}
+      else alert('That file did not contain a list of calls.');}catch(err){alert('Could not read that file.');}};
+    r.readAsText(f);};inp.click();};
+document.getElementById('bSm').onclick=()=>setPref(pref-0.08);
+document.getElementById('bLg').onclick=()=>setPref(pref+0.08);
+document.getElementById('bTheme').onclick=e=>{const dk=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dk?'light':'dark');e.target.textContent=dk?'Dark':'Light';
+  try{localStorage.setItem(KEY+'.theme',dk?'light':'dark');}catch(err){}};
+
+/* modals */
+function wireModal(ovlId,btnId){
+  const o=document.getElementById(ovlId);
+  document.getElementById(btnId).onclick=()=>o.classList.add('open');
+  o.addEventListener('click',e=>{if(e.target===o||e.target.hasAttribute('data-close'))o.classList.remove('open');});
+}
+wireModal('whyOvl','bWhy');
+wireModal('shareOvl','bShare');
+function baseUrl(){return location.origin+location.pathname;}
+function studentLink(n,ans){return baseUrl()+'?level='+n+'&student=1'+(ans?'&answers=1':'');}
+document.getElementById('bShare').addEventListener('click',()=>{
+  const msg=document.getElementById('shareMsg'), box=document.getElementById('qrbox');
+  if(location.protocol==='file:'){
+    msg.innerHTML='<b>This copy is running from a local file</b>, so there is no link anyone can scan. Host it once (GitHub Pages, or university web space), open the hosted address, and this button will produce three working codes.';
+    box.innerHTML=''; document.getElementById('qrurl').textContent=''; return;
+  }
+  msg.textContent='Put this on the projector. One code per level — students scan the one you are on.';
+  document.getElementById('qrurl').textContent=baseUrl();
+  box.innerHTML='';
+  ['How urgent?','What do you do?','The messy ones'].forEach((lab,i)=>{
+    const card=document.createElement('div'); card.className='qrcard';
+    const code=document.createElement('div'); code.className='code';
+    card.appendChild(code);
+    const l=document.createElement('div'); l.className='lab'; l.textContent='Level '+(i+1);
+    const sub=document.createElement('div'); sub.className='sub'; sub.textContent=lab;
+    card.appendChild(l); card.appendChild(sub); box.appendChild(card);
+    try{new QRCode(code,{text:studentLink(i+1,false),width:190,height:190,correctLevel:QRCode.CorrectLevel.M});}
+    catch(e){code.textContent='QR library did not load — use the link below.';}
+  });
+});
+document.getElementById('bCopy').onclick=e=>{
+  navigator.clipboard&&navigator.clipboard.writeText(studentLink(L+1,false)).then(()=>{e.target.textContent='Copied';
+    setTimeout(()=>e.target.textContent='Copy student link',1500);});};
+document.getElementById('bAnsLink').onclick=e=>{
+  navigator.clipboard&&navigator.clipboard.writeText(studentLink(L+1,true)).then(()=>{e.target.textContent='Copied';
+    setTimeout(()=>e.target.textContent='Copy answers link',1500);});};
+
+window.addEventListener('resize',refit);
+try{if(localStorage.getItem(KEY+'.theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');
+  document.getElementById('bTheme').textContent='Light';}
+  const s=parseFloat(localStorage.getItem(KEY+'.s'));if(s)pref=s;}catch(e){}
+if(STUDENT){
+  ['bEdit','bShuffle','bAdd','bExport','bImport','bReset','bShare','bClear'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';});
+  if(!ANSWERS){const r=document.getElementById('bReveal'); if(r) r.style.display='none';}
+  document.querySelector('h1').textContent='Triage — Level '+(L+1);
+}
+load();render();
+document.fonts&&document.fonts.ready.then(refit);
+</script>
+</body>
+</html>
