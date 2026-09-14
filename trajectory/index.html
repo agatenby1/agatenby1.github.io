@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en-GB" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Trajectory — what one consultation can and cannot tell you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --f:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --f-disp:'Fraunces',Georgia,serif;
+  --bg:#eef3fa; --ink:#22364f; --dim:#5a6d87; --faint:#5f6d8f;
+  --glass:rgba(255,255,255,.72); --line:rgba(120,150,185,.32);
+  --solid:#ffffff;
+  --shadow:0 1px 2px rgba(34,54,79,.06),0 4px 12px rgba(34,54,79,.06);
+  --gold:#a97400; --s:1;
+  --grid:rgba(120,150,185,.30); --plot:rgba(255,255,255,.55);
+  --dead:rgba(194,90,72,.10); --deadline:rgba(194,90,72,.55);
+}
+html[data-theme="dark"]{
+  --bg:#121a2e; --ink:#eaf0ff; --dim:#9aa8c7; --faint:#8497ad;
+  --glass:rgba(255,255,255,.045); --line:rgba(255,255,255,.10);
+  --solid:#1a2440; --shadow:none; --gold:#ffc83d;
+  --grid:rgba(255,255,255,.12); --plot:rgba(255,255,255,.025);
+  --dead:rgba(194,90,72,.16); --deadline:rgba(224,120,102,.6);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--f);background:var(--bg);color:var(--ink);
+  display:flex;flex-direction:column;overflow:hidden;
+  -webkit-font-smoothing:antialiased;font-size:14px}
+h1,h2,h3,.disp{font-family:var(--f-disp);font-weight:600;letter-spacing:-.01em}
+button{font-family:var(--f);color:inherit}
+a{color:var(--gold);text-decoration:none;border-bottom:1px dotted currentColor}
+a:hover{border-bottom-style:solid}
+
+/* ---------- chrome ---------- */
+.bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:9px 14px;border-bottom:1px solid var(--line);background:var(--glass);
+  backdrop-filter:blur(10px)}
+.brand{font-family:var(--f-disp);font-size:calc(16px*var(--s));font-weight:600;
+  margin-right:2px;white-space:nowrap}
+.brand small{font-family:var(--f);font-weight:400;font-size:calc(10.5px*var(--s));
+  color:var(--dim);display:block;letter-spacing:.02em;margin-top:-1px}
+.spacer{flex:1 1 auto}
+.btn{background:var(--glass);border:1px solid var(--line);border-radius:8px;
+  padding:5px 10px;font-size:calc(12px*var(--s));font-weight:500;cursor:pointer;
+  transition:background .16s,transform .16s,color .16s;white-space:nowrap}
+.btn:hover{background:rgba(120,150,185,.13);transform:translateX(2px)}
+.btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.tiny{padding:4px 8px;font-size:calc(11px*var(--s))}
+.grp{display:flex;gap:4px;align-items:center}
+select.btn{padding:5px 8px;max-width:270px;text-overflow:ellipsis}
+select.btn:hover{transform:none}
+
+/* ---------- tally ---------- */
+.tally{flex:0 0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:7px 14px;border-bottom:1px solid var(--line);font-size:calc(11.5px*var(--s));
+  color:var(--dim)}
+.tally b{color:var(--ink);font-weight:600}
+.chip{display:inline-block;padding:2.5px 8px;border-radius:99px;color:#fff;
+  font-size:calc(9.5px*var(--s));font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- board ---------- */
+.board{flex:1 1 auto;min-height:0;display:flex;gap:12px;padding:12px 14px;overflow:hidden}
+.pane-g{flex:1 1 60%;min-width:0;display:flex;flex-direction:column;gap:8px}
+.pane-c{flex:0 0 clamp(280px,32%,420px);min-width:0;display:flex;flex-direction:column;
+  gap:8px;overflow-y:auto;padding-right:2px}
+.plotwrap{flex:1 1 auto;min-height:0;position:relative;border:1px solid var(--line);
+  border-radius:13px;background:var(--plot);backdrop-filter:blur(10px);
+  box-shadow:var(--shadow);overflow:hidden}
+svg.plot{width:100%;height:100%;display:block}
+.setup{flex:0 0 auto;font-size:calc(12.5px*var(--s));color:var(--dim);line-height:1.45;
+  padding:0 2px}
+.setup b{color:var(--ink);font-weight:600}
+
+/* ---------- cards ---------- */
+.sect{font-size:calc(9.5px*var(--s));font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint);margin:2px 0 -2px 2px}
+.card{border:1px solid var(--line);border-left:4px solid transparent;border-radius:11px;
+  background:var(--glass);backdrop-filter:blur(10px);box-shadow:var(--shadow);
+  padding:calc(9px*var(--s)) calc(11px*var(--s));cursor:pointer;
+  transition:transform .16s,background .16s,border-color .22s}
+.card:hover{transform:translateX(3px);background:rgba(120,150,185,.10)}
+.card.sel{border-color:var(--line);background:rgba(120,150,185,.14)}
+.card .ct{font-size:calc(13px*var(--s));font-weight:600;line-height:1.3}
+.card .cs{font-size:calc(11.5px*var(--s));color:var(--dim);line-height:1.4;margin-top:3px}
+.card .cw{font-size:calc(10px*var(--s));color:var(--faint);margin-top:4px;
+  letter-spacing:.03em;text-transform:uppercase;font-weight:600}
+.rev .card{cursor:pointer}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;
+  vertical-align:baseline;background:var(--line)}
+.mk{float:right;font-size:calc(10px*var(--s));font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;padding:1px 7px;border-radius:99px;margin-left:6px}
+.mk.t{background:#35a65a;color:#fff}
+.mk.p{background:var(--ink);color:var(--bg)}
+.mk.n{background:#c25a48;color:#fff}
+.hint{font-size:calc(11px*var(--s));color:var(--faint);line-height:1.45;
+  padding:2px 2px 0;font-style:italic}
+
+/* ---------- drawer ---------- */
+.drawer{flex:0 0 auto;max-height:0;overflow:hidden;border-top:1px solid var(--line);
+  background:var(--glass);backdrop-filter:blur(10px);transition:max-height .22s ease}
+.drawer.open{max-height:44vh;overflow-y:auto}
+.dw{padding:12px 16px 16px}
+.dw h3{margin:0 0 2px;font-size:calc(15px*var(--s))}
+.dw .meta{font-size:calc(10.5px*var(--s));color:var(--faint);text-transform:uppercase;
+  letter-spacing:.05em;font-weight:600;margin-bottom:7px}
+.dw p{margin:0 0 8px;font-size:calc(12.5px*var(--s));line-height:1.55;color:var(--dim)}
+.dw p b,.dw p strong{color:var(--ink);font-weight:600}
+.dw .refs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dw .refs a{font-size:calc(11px*var(--s));border:1px solid var(--line);border-radius:99px;
+  padding:3px 9px;border-bottom:1px solid var(--line);background:var(--glass)}
+.dw .refs a:hover{background:rgba(120,150,185,.13)}
+.dclose{float:right;margin-left:10px}
+
+/* ---------- overlay ---------- */
+.ovl{position:fixed;inset:0;background:rgba(10,18,34,.55);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+.ovl.open{display:flex}
+.sheet{background:var(--solid);border:1px solid var(--line);border-radius:16px;
+  max-width:760px;width:100%;max-height:84vh;overflow-y:auto;padding:22px 26px 26px;
+  box-shadow:0 18px 48px rgba(10,18,34,.28)}
+.sheet h2{margin:0 0 4px;font-size:20px}
+.sheet h4{margin:16px 0 4px;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--faint);font-family:var(--f);font-weight:600}
+.sheet p,.sheet li{font-size:13px;line-height:1.6;color:var(--dim);margin:0 0 8px}
+.sheet li{margin-bottom:5px}
+.sheet b{color:var(--ink)}
+.sheet ul{margin:0 0 8px;padding-left:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:10px}
+.grid .card{cursor:pointer}
+.note{border-left:3px solid var(--gold);padding:8px 12px;background:rgba(169,116,0,.06);
+  border-radius:0 9px 9px 0;margin:10px 0}
+html[data-theme="dark"] .note{background:rgba(255,200,61,.07)}
+
+/* ---------- svg bits ---------- */
+.ax{stroke:var(--grid);stroke-width:1}
+.axlab{fill:var(--faint);font-family:var(--f);font-size:11px;font-weight:500}
+.axttl{fill:var(--dim);font-family:var(--f);font-size:11.5px;font-weight:600;
+  letter-spacing:.05em;text-transform:uppercase}
+.curve{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+  opacity:0;transition:opacity .3s}
+.curve.show{opacity:.42}
+.curve.truth{opacity:1;stroke-width:3.4}
+.curve.pick{opacity:.95;stroke-dasharray:1 0}
+.curve.focus{opacity:1;stroke-width:3.6}
+.xm{stroke:#35a65a;stroke-width:3;stroke-linecap:round}
+.xhit{fill:transparent;cursor:pointer}
+.xlab{fill:var(--dim);font-family:var(--f);font-size:10.5px;font-weight:600}
+.deadband{fill:var(--dead)}
+.deadline{stroke:var(--deadline);stroke-width:1.2;stroke-dasharray:5 4}
+.wellline{stroke:var(--grid);stroke-width:1.2;stroke-dasharray:5 4}
+.zlab{fill:var(--faint);font-family:var(--f);font-size:10.5px;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase}
+.bnum{fill:#fff;font-family:var(--f);font-size:11.5px;font-weight:600}
+.winlab{fill:#2f6e4e;font-family:var(--f);font-size:11px;font-weight:600;letter-spacing:.02em}
+.winsub{fill:var(--faint);font-family:var(--f);font-size:10px;font-weight:500}
+html[data-theme="dark"] .winlab{fill:#6ec894}
+.ivt{font-family:var(--f);font-size:10.5px;font-weight:600}
+.bdg{display:inline-block;min-width:17px;height:17px;line-height:17px;border-radius:50%;
+  color:#fff;font-size:calc(10.5px*var(--s));font-weight:600;text-align:center;margin-right:7px;
+  vertical-align:middle}
+.cap{flex:0 0 auto;font-size:calc(10.5px*var(--s));color:var(--faint);line-height:1.45;padding:1px 2px}
+.cap b{color:var(--dim)}
+.attrib{opacity:0;transition:opacity .25s}
+.attrib.show{opacity:1}
+.attline{stroke:var(--gold);stroke-width:1.4;stroke-dasharray:4 3}
+.attdot{fill:var(--gold)}
+.atttx{fill:var(--gold);font-family:var(--f);font-size:11px;font-weight:600}
+
+/* ---------- misc ---------- */
+[contenteditable="true"]{outline:1px dashed var(--line);outline-offset:2px;border-radius:3px}
+.delx{display:none;float:right;color:#c25a48;font-weight:700;cursor:pointer;
+  font-size:calc(13px*var(--s));line-height:1;padding:0 3px}
+body.editing .delx{display:inline}
+.ig{font-size:10px;color:var(--faint);padding:5px 14px;border-top:1px solid var(--line);
+  flex:0 0 auto;letter-spacing:.01em}
+@media (max-width:900px){
+  .board{flex-direction:column;overflow-y:auto}
+  .pane-c{flex:0 0 auto}
+  .plotwrap{min-height:300px}
+}
+@media print{
+  .bar,.drawer,.ovl,.hint,.ig{display:none!important}
+  body{overflow:visible;height:auto}
+  .board{overflow:visible;display:block}
+  .plotwrap{height:420px;break-inside:avoid}
+  .pane-c{margin-top:12px}
+  .card{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="brand">The Trajectory<small>What one consultation can and cannot tell you</small></div>
+  <button class="btn" id="bWhy">Why does this matter?</button>
+  <div class="grp">
+    <button class="btn tiny" id="bPrev" title="Previous scenario">&lsaquo;</button>
+    <select class="btn" id="selScen"></select>
+    <button class="btn tiny" id="bNext" title="Next scenario">&rsaquo;</button>
+    <button class="btn tiny" id="bAll" title="All scenarios">Grid</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn" id="bReveal">Reveal</button>
+  <button class="btn" id="bAttr">Who got the credit?</button>
+  <div class="grp">
+    <button class="btn tiny" id="bDown">A&minus;</button>
+    <button class="btn tiny" id="bUp">A+</button>
+  </div>
+  <button class="btn tiny" id="bEdit">Edit</button>
+  <button class="btn tiny" id="bExp">Export</button>
+  <button class="btn tiny" id="bImp">Import</button>
+  <button class="btn tiny" id="bShare">Share</button>
+  <button class="btn tiny" id="bTheme">&#9682;</button>
+</div>
+
+<div class="tally">
+  <span><b id="tScen">&mdash;</b></span>
+  <span>Consultations shown: <b class="num" id="tRev">0</b></span>
+  <span>Futures still open: <b class="num" id="tCur">0</b></span>
+  <span id="tState" class="chip" style="background:#6c7a93">Not revealed</span>
+  <span id="tPick" style="display:none">Your call: <b id="tPickN">&mdash;</b></span>
+</div>
+
+<div class="board" id="board">
+  <div class="pane-g">
+    <div class="setup" id="setup"></div>
+    <div class="plotwrap"><svg class="plot" id="plot" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="cap" id="cap"></div>
+  </div>
+  <div class="pane-c" id="pane">
+    <div class="sect">What the clinician saw</div>
+    <div id="revs"></div>
+    <div class="sect" style="margin-top:8px">Which future is this? <span id="addR"></span></div>
+    <div id="curs" class="rev"></div>
+    <div class="hint" id="hint">Pick the one you think it is, then press Reveal. Click any card for the detail.</div>
+  </div>
+</div>
+
+<div class="drawer" id="drawer"><div class="dw" id="dwBody"></div></div>
+
+<div class="ig">Every scenario in this file is fictional and constructed from scratch. No real patient, consultation or record has been used, adapted or anonymised.</div>
+
+<div class="ovl" id="ovlWhy"><div class="sheet" id="whyBody"></div></div>
+<div class="ovl" id="ovlAll"><div class="sheet">
+  <button class="btn tiny dclose" onclick="document.getElementById('ovlAll').classList.remove('open')">Close</button>
+  <h2>Scenarios</h2>
+  <p>Fifteen constructed situations, each one a different shape of curve. Click to load.</p>
+  <div class="grid" id="allGrid"></div>
+</div></div>
+<div class="ovl" id="ovlShare"><div class="sheet" id="shareBody"></div></div>
+<input type="file" id="fileIn" accept="application/json" style="display:none">
+
+<script>
+/* ============================================================
+   THE TRAJECTORY — teaching tool
+   All scenarios fictional and constructed. No real case used.
+   ============================================================ */
+
+const R={
+ thom:{t:"Thompson MJ et al. Clinical recognition of meningococcal disease in children and adolescents. Lancet 2006;367:397–403",u:"https://pubmed.ncbi.nlm.nih.gov/16458763/"},
+ haj:{t:"Haj-Hassan TA et al. Which early ‘red flag’ symptoms identify children with meningococcal disease in primary care? BJGP 2011;61:e97–e104",u:"https://bjgp.org/content/61/584/e97"},
+ vdb10:{t:"Van den Bruel A et al. Diagnostic value of clinical features to identify serious infection in children. Lancet 2010;375:834–45",u:"https://pubmed.ncbi.nlm.nih.gov/20132979/"},
+ vdb12:{t:"Van den Bruel A et al. Clinicians’ gut feeling about serious infections in children. BMJ 2012;345:e6144",u:"https://pubmed.ncbi.nlm.nih.gov/23015034/"},
+ ng254:{t:"NICE NG254 — Suspected sepsis in under 16s (2024, replaced NG51)",u:"https://www.nice.org.uk/guidance/ng254"},
+ ng253:{t:"NICE NG253 — Suspected sepsis in people aged 16 or over (2024, replaced NG51)",u:"https://www.nice.org.uk/guidance/ng253"},
+ ng143:{t:"NICE NG143 — Fever in under 5s: assessment and initial management",u:"https://www.nice.org.uk/guidance/ng143"},
+ lit97:{t:"Little P et al. Reattendance and complications in a randomised trial of prescribing strategies for sore throat: the medicalising effect of prescribing antibiotics. BMJ 1997;314:722",u:"https://www.bmj.com/content/314/7082/722"},
+ coch:{t:"Spurling GKP et al. Immediate versus delayed versus no antibiotics for respiratory infections. Cochrane Database Syst Rev 2023, CD004417",u:"https://www.cochrane.org/evidence/CD004417_delayed-antibiotic-prescriptions-respiratory-tract-infections"},
+ rti25:{t:"Effects of antibiotic prescribing for RTI on future consultations in primary care: systematic review and meta-analysis (2025)",u:"https://pubmed.ncbi.nlm.nih.gov/40721253/"},
+ krog:{t:"Krogsbøll LT, Hróbjartsson A, Gøtzsche PC. Spontaneous improvement in randomised clinical trials. BMC Med Res Methodol 2009;9:1",u:"https://link.springer.com/article/10.1186/1471-2288-9-1"},
+ ebell:{t:"Ebell MH et al. How long does a cough last? Ann Fam Med 2013;11:5–13",u:"https://www.annfammed.org/content/11/1/5"},
+ jones:{t:"Jones D et al. Safety netting for primary care: evidence from a literature review. BJGP 2019;69:e70–e79",u:"https://bjgp.org/content/69/678/e70"},
+ hene:{t:"Heneghan C et al. Diagnostic strategies used in primary care. BMJ 2009;338:b946",u:"https://pubmed.ncbi.nlm.nih.gov/19380414/"},
+ murr:{t:"Murray SA, Kendall M, Boyd K, Sheikh A. Illness trajectories and palliative care. BMJ 2005;330:1007–11",u:"https://pubmed.ncbi.nlm.nih.gov/15860828/"},
+ srg:{t:"Scottish Referral Guidelines for Suspected Cancer (2025), Scottish Government",u:"https://www.gov.scot/publications/scottish-referral-guidelines-suspected-cancer-2025/"},
+ unc:{t:"Embracing uncertainty to advance diagnosis in general practice. BJGP 2017;67:244",u:"https://bjgp.org/content/67/659/244"},
+ awi:{t:"Adults with Incapacity (Scotland) Act 2000",u:"https://www.legislation.gov.uk/asp/2000/4/contents"},
+ polm:{t:"Polmear A. Sentinel headaches in aneurysmal subarachnoid haemorrhage: what is the true incidence? A systematic review. Cephalalgia 2003;23:935–41",u:"https://journals.sagepub.com/doi/10.1046/j.1468-2982.2003.00596.x"},
+ shed:{t:"Can non-contrast CT exclude subarachnoid haemorrhage? Summary of the SHED study, 3,663 patients across UK emergency departments",u:"https://ora.ox.ac.uk/objects/uuid:8339b172-d4ac-4b53-b535-4f69345ca107/files/rcr56n226b"},
+ ces:{t:"Cauda equina syndrome — a review. Bone & Joint 360",u:"https://boneandjoint.org.uk/Article/10.1302/2048-0105.81.360674"},
+ howe:{t:"Howe AS et al. Degree of twisting and duration of symptoms are prognostic factors of testis salvage during episodes of testicular torsion. Transl Androl Urol",u:"https://tau.amegroups.org/article/view/16891/html"},
+ stat:{t:"Testicular torsion. StatPearls, NCBI Bookshelf",u:"https://www.ncbi.nlm.nih.gov/books/NBK448199/"}
+};
+
+const SC=[
+{
+ id:"infant",
+ t:"The well-looking febrile infant",
+ sub:"An infant under three months, unsettled since the early hours. Seen twice on the same day. <b>The first set of observations is normal. The second crosses a protocol threshold.</b>",
+ x:{ttl:"Hours since symptoms began",tk:[[0,"0"],[.167,"6"],[.333,"12"],[.5,"18"],[.667,"24"],[.833,"30"],[1,"36"]]},
+ rev:[
+  {p:.167,s:.16,w:"Hour 6",saw:"Alert, feeding, temperature 37.6°C, capillary refill under 2 seconds, no rash. Carer says the baby is “not right”.",
+   full:"Afebrile. Everything you can measure is normal. The one abnormal finding in the room is not on the observation chart: the carer is telling you this illness is different from previous illnesses. In the systematic review of clinical features for serious infection in children, <b>that carries a positive likelihood ratio of about 14.4 (9.3–22.1)</b>, and the clinician’s own instinct that something is wrong about <b>23.5 (16.8–32.7)</b>. A single normal set of observations carries a likelihood ratio close to 1."},
+  {p:.333,s:.26,w:"Hour 12",saw:"Alert, took a smaller feed, temperature 39.8°C, still no rash, perfusion normal. Carer more worried, not less.",
+   full:"Six hours further along, and now febrile. Under NICE NG143, a temperature of 38°C or above in an infant under three months is a red feature in its own right, so this consultation ends in admission by protocol and the first one did not. Look at what actually happened: <b>a continuous variable crossed an arbitrary line.</b> The infant did not change category — the thermometer did. Had the second clinician seen the child at hour 8, or the first at hour 11, the two consultations would have swapped roles entirely."}
+ ],
+ cur:[
+  {n:"Self-limiting viral illness",c:"#17a2a0",pts:[[0,.05],[.5,.17],[.7,.10],[1,.03]],
+   why:"By far the commonest thing this is. Peaks around 12–18 hours and settles.",
+   tell:"Nothing at hour 6 or hour 12 distinguishes it. You find out at hour 24, by not being called."},
+  {n:"Invasive bacterial infection",c:"#c25a48",truth:true,pts:[[0,.04],[.45,.34],[.58,.60],[.7,.86],[.8,.70],[1,.30]],iv:{p:0.7,lab:"Admitted · IV antibiotics"},
+   why:"The curve that kills. It is flat and unremarkable for its first half and then turns almost vertically.",
+   tell:"In the classic study of meningococcal disease in children, early features — leg pain, cold hands and feet, abnormal skin colour — appeared at a median of about <b>8 hours</b>. The features everyone teaches (haemorrhagic rash, meningism, impaired consciousness) appeared at a median of <b>13–22 hours</b>. Most children were first seen by a doctor before any of them existed. That is not a diagnostic failure. That is the shape of the curve."},
+  {n:"Urinary tract infection",c:"#33506e",pts:[[0,.05],[.55,.30],[.75,.36],[.85,.22],[1,.08]],iv:{p:0.78,lab:"Oral antibiotics"},
+   why:"A slower rise with few localising signs at this age.",
+   tell:"Distinguished by a test, not by the passage of time — which is a different argument for acting early."},
+  {n:"Early bronchiolitis",c:"#7c8cff",pts:[[0,.04],[.5,.28],[.68,.38],[.82,.30],[1,.12]],
+   why:"Respiratory signs arrive after the fever.",
+   tell:"Becomes obvious in the following 12 hours as work of breathing appears."}
+ ],
+ att:{p:.36,who:"The family",cred:"The second clinician, for “spotting it”.",
+  act:"The second clinician saw the same child six hours further along a curve that was already running. Both consultations were reasonable; only one of them happened to sit on the steep part. The finding that carried real weight was present at <i>both</i> — the carer’s concern — and it is worth more than any observation either doctor recorded."},
+ point:"At hour 6 all four curves are the same height. The observations cannot separate them, because an observation is a point and a diagnosis is a gradient. A threshold — 38°C, a score, a red flag — does not solve this; it converts the curve into a binary at whatever moment you happen to be standing there, so <b>which clinician triggers the protocol is largely a matter of timing rather than of skill</b>. What actually separates the curves is the carer’s account of change, the clinician’s instinct, and a second look. The safety net is not a consolation prize for failing to diagnose — it is the diagnostic test.",
+ refs:["thom","haj","vdb10","vdb12","ng254","ng143"]
+},
+{
+ id:"abx",
+ t:"The weekend antibiotic",
+ sub:"An adult with a sore throat. Seen on day 2 in hours, no antibiotic. Seen again on day 4 out of hours and given one. Better by day 6. <b>The patient is certain the antibiotic did it.</b>",
+ x:{ttl:"Days since symptoms began",tk:[[0,"0"],[.2,"2"],[.4,"4"],[.6,"6"],[.8,"8"],[1,"10"]]},
+ rev:[
+  {p:.2,s:.30,w:"Day 2 — in hours",saw:"Sore throat, mild fever, no exudate, no cervical nodes, well. No antibiotic; explanation and safety netting given.",
+   full:"A defensible decision, and the one the evidence supports. It is also the decision that will be remembered as the wrong one, because of what happens next."},
+  {p:.4,s:.42,w:"Day 4 — out of hours",saw:"Worse than day 2. Struggling to swallow, febrile, tonsillar exudate. Antibiotic prescribed.",
+   full:"Also a defensible decision — the symptoms have progressed and this is the peak of the illness. The problem is not the prescription. The problem is <i>where on the curve it lands</i>."}
+ ],
+ cur:[
+  {n:"Ordinary viral pharyngitis, natural course",c:"#17a2a0",truth:true,pts:[[0,.05],[.55,.33],[.7,.20],[.85,.09],[1,.03]],
+   why:"Peaks around day 3–4 and resolves over the following three to four days, treated or not.",
+   tell:"Day 4 is the top of this curve. Anything given on day 4 is followed by improvement, because everything is followed by improvement after the peak."},
+  {n:"Streptococcal throat, genuine antibiotic effect",c:"#7c8cff",pts:[[0,.05],[.52,.28],[.65,.14],[.8,.05],[1,.02]],iv:{p:0.42,lab:"Antibiotic started"},
+   why:"A real but small effect — roughly a day less of symptoms.",
+   tell:"Note how little space there is between this curve and the one above it. That difference is the entire measurable benefit, and it is smaller than the difference the patient believes they experienced."},
+  {n:"Peritonsillar abscess developing",c:"#c25a48",pts:[[0,.05],[.52,.60],[.62,.80],[.72,.55],[.85,.25],[1,.08]],iv:{p:0.63,lab:"Drained"},
+   why:"Keeps rising after day 4 — trismus, unilateral swelling, voice change.",
+   tell:"This is the curve the day-4 consultation genuinely needed to exclude, and the reason that consultation mattered."},
+  {n:"Glandular fever",c:"#6c7a93",pts:[[0,.05],[.55,.46],[.7,.44],[.85,.36],[1,.28]],
+   why:"Plateaus rather than resolving, and drags on for weeks.",
+   tell:"Declares itself by failing to follow the expected curve, which is only visible if someone said what the expected curve was."}
+ ],
+ att:{p:.4,who:"The patient",cred:"The antibiotic started at the out-of-hours appointment — “and the first doctor didn’t give me anything.”",
+  act:"On the true curve, day 4 was the peak. The descent was already coming. But the attribution is not harmless: in a randomised trial of prescribing strategies for sore throat, <b>87% of those given an immediate antibiotic thought antibiotics were effective, against 55% given none</b>, and <b>79% intended to consult again in a future attack, against 54%</b>. A 2025 meta-analysis found antibiotic prescribing for respiratory infection probably modestly increases future reattendance. The prescription bought about a day of symptoms and sold a belief that will generate consultations for years."},
+ point:"This is the mirror image of the previous scenario. There, a clinician was credited for a recovery he did not cause; here, a drug is. <b>Both are the same error</b> — attributing a change in direction to whatever happened to coincide with it. It is the reason clinical experience alone cannot tell you whether a treatment works, and the reason trials need a no-treatment arm rather than only a placebo arm.",
+ refs:["lit97","coch","rti25","krog"]
+},
+{
+ id:"cough",
+ t:"The cough that has not gone",
+ sub:"An adult reconsults on day 8 of a cough because “it should have gone by now”. <b>Nothing about the patient has changed since day 3. The expectation has.</b>",
+ x:{ttl:"Days since symptoms began",tk:[[0,"0"],[.25,"7"],[.5,"14"],[.75,"21"],[1,"28"]]},
+ rev:[
+  {p:.107,s:.28,w:"Day 3",saw:"Cough, coryza, no fever, chest clear, well. Advised it is viral.",
+   full:"Correct, and almost certainly what was said. What may not have been said is <i>how long</i>."},
+  {p:.286,s:.24,w:"Day 8",saw:"Cough continuing, slightly less at night, chest clear, well, no fever.",
+   full:"Objectively a little better than day 3. Subjectively a failure, because it has crossed the boundary of what the patient was expecting."}
+ ],
+ cur:[
+  {n:"Ordinary post-viral cough",c:"#17a2a0",truth:true,pts:[[0,.06],[.45,.18],[.62,.12],[.8,.06],[1,.02]],
+   why:"Slow, unglamorous resolution over two to three weeks.",
+   tell:"Patients surveyed expected a cough to last a median of 5–7 days (mean 7.2–9.3). The pooled mean from a systematic review of 19 studies was <b>17.8 days</b>. That ten-day gap is not a clinical problem; it is a consultation, and often an antibiotic."},
+  {n:"Community-acquired pneumonia",c:"#c25a48",pts:[[0,.06],[.4,.42],[.5,.58],[.62,.44],[.8,.20],[1,.07]],iv:{p:0.51,lab:"Antibiotics"},
+   why:"Turns upward rather than down, with fever and focal signs.",
+   tell:"Diverges in the days <i>after</i> the day-8 review, which is exactly why the day-8 review cannot exclude it and the safety net has to."},
+  {n:"Asthma unmasked by the infection",c:"#b569c4",pts:[[0,.06],[.45,.28],[.6,.34],[.75,.30],[1,.26]],
+   why:"Plateaus at a low level and will not clear.",
+   tell:"Identified by the curve failing to come down, not by anything audible on day 8."},
+  {n:"Slow upward drift with another cause",c:"#33506e",pts:[[0,.06],[.45,.26],[.6,.30],[.78,.38],[1,.48]],
+   why:"Barely rising — the shape that gets missed for months.",
+   tell:"See the scenario on tiredness and weight loss: a gradient this shallow is invisible between two consultations and obvious across six."}
+ ],
+ att:{p:.29,who:"The patient",cred:"Whatever is given on day 8 — a mucolytic, an inhaler, an antibiotic — will be credited with the resolution that arrives around day 18.",
+  act:"There is no reason to think it did anything. The most useful intervention at day 3 was free and takes ten seconds: naming the expected duration and shape."},
+ point:"Half of all reconsultations for self-limiting illness are a mismatch between the patient’s expected curve and the real one. Safety netting evidence keeps coming back to this: <b>tell people the expected time course</b>, not just the red flags. “Come back if you’re worried” invites a return at the point of maximum uncertainty; “this usually peaks at three days and takes about three weeks to fully clear — come back sooner if X” describes a curve.",
+ refs:["ebell","jones","coch"]
+},
+{
+ id:"abdo",
+ t:"Abdominal pain at six hours",
+ sub:"A young adult with six hours of central, colicky abdominal pain. Observations normal. Abdomen soft, no localising tenderness, no guarding. <b>Only one consultation so far.</b>",
+ x:{ttl:"Hours since pain began",tk:[[0,"0"],[.167,"6"],[.333,"12"],[.5,"18"],[.667,"24"],[.833,"30"],[1,"36"]]},
+ rev:[
+  {p:.167,s:.26,w:"Hour 6",saw:"Central colicky pain, one episode of vomiting, appetite reduced, apyrexial. Abdomen soft, generalised mild tenderness, no rebound.",
+   full:"Genuinely undifferentiated. There is no examination finding, no score and no blood test that separates the four curves below at this moment, because the anatomy that produces the distinguishing signs has not been reached yet."}
+ ],
+ cur:[
+  {n:"Appendicitis",c:"#c25a48",truth:true,pts:[[0,.03],[.35,.42],[.5,.58],[.65,.72],[.78,.80],[.9,.45],[1,.20]],iv:{p:0.79,lab:"Appendicectomy"},
+   why:"Migrates and localises somewhere between 12 and 24 hours.",
+   tell:"The old teaching that appendicitis is easy to diagnose at 24 hours and impossible at 6 is a statement about this curve, not about clinical skill."},
+  {n:"Mesenteric adenitis",c:"#17a2a0",pts:[[0,.03],[.35,.34],[.5,.30],[.7,.18],[1,.05]],
+   why:"Rises slightly, then drifts down.",
+   tell:"Only distinguishable in retrospect, or in theatre."},
+  {n:"Gastroenteritis",c:"#7c8cff",pts:[[0,.03],[.3,.36],[.45,.30],[.6,.18],[.8,.08],[1,.03]],
+   why:"Diarrhoea arrives and the pain becomes intermittent.",
+   tell:"Declares itself within 12 hours, usually unhelpfully — by which time the appendix curve has also declared itself."},
+  {n:"Constipation",c:"#6c7a93",pts:[[0,.03],[.35,.22],[.5,.26],[.7,.14],[1,.06]],
+   why:"Fluctuates around a low level.",
+   tell:"The dangerous label, because it explains the day-one findings perfectly and closes the question."}
+ ],
+ att:{p:.5,who:"Everyone",cred:"The clinician at hour 18 who “made the diagnosis”.",
+  act:"They examined a different abdomen. Not a different patient — a different point on the same curve. The skill at hour 6 is not making the diagnosis; it is arranging to be there at hour 18."},
+ point:"The most-used diagnostic strategy in general practice is not pattern recognition or investigation. In an observational study of primary care diagnostic strategies, one of the recurring techniques was simply the <b>test of time</b> — deliberately using the interval as the discriminator. It is a real diagnostic act with a real result. It is undervalued because it produces no entry in the record and no bill.",
+ refs:["hene","unc","jones"]
+},
+{
+ id:"chest",
+ t:"Chest pain with a normal ECG",
+ sub:"Chest pain for one hour. ECG normal. First troponin normal. <b>Both tests are points on curves that have not moved yet.</b>",
+ x:{ttl:"Hours since pain began",tk:[[0,"0"],[.167,"2"],[.333,"4"],[.5,"6"],[.667,"8"],[.833,"10"],[1,"12"]]},
+ rev:[
+  {p:.083,s:.30,w:"Hour 1",saw:"Central chest heaviness, settled at rest. ECG sinus rhythm, no ST change. Observations normal.",
+   full:"A normal ECG one hour into chest pain and a normal ECG twelve hours into chest pain are not the same test, and treating them as the same test is one of the commonest reasoning errors in acute care."}
+ ],
+ cur:[
+  {n:"Acute coronary syndrome, evolving",c:"#c25a48",truth:true,pts:[[0,.05],[.25,.40],[.45,.62],[.6,.78],[.75,.60],[1,.40]],iv:{p:0.61,lab:"Reperfusion"},
+   why:"Both the ECG and the troponin are rising functions of time.",
+   tell:"The reason serial testing exists is that the test measures the curve’s <i>slope</i>, not the patient’s state."},
+  {n:"Musculoskeletal chest pain",c:"#17a2a0",pts:[[0,.06],[.3,.26],[.55,.20],[.8,.14],[1,.10]],
+   why:"Reproducible on palpation, drifts down.",
+   tell:"Tempting at hour 1 precisely because chest wall tenderness is so easy to elicit and so poorly discriminating."},
+  {n:"Pericarditis",c:"#6c7a93",pts:[[0,.05],[.3,.36],[.55,.40],[.75,.34],[1,.26]],
+   why:"Positional, plateaus, ECG changes appear later and diffusely.",
+   tell:"Another diagnosis whose defining sign is late."},
+  {n:"Panic",c:"#7c8cff",pts:[[0,.03],[.22,.34],[.35,.18],[.6,.08],[1,.05]],
+   why:"Sharp peak, rapid fall.",
+   tell:"Reasonable as a description; dangerous as a conclusion at hour 1."}
+ ],
+ att:{p:.1,who:"The record",cred:"“ECG normal, troponin normal, discharged.”",
+  act:"That sentence is true and, read a day later by anyone reviewing the case, will look like a decision rather than a timestamp. Write the time on the curve, not just the result."},
+ point:"A negative test does not lower the probability of disease by a fixed amount. It lowers it by an amount that depends on <b>where on the curve you took it</b>. This is the single most transferable idea in the tool: every point-in-time investigation inherits the trajectory problem.",
+ refs:["hene","ng253"]
+},
+{
+ id:"head",
+ t:"The severe headache at four hours",
+ sub:"Sudden-onset severe headache, four hours ago. Neurologically intact, no neck stiffness, no rash. <b>The window for the definitive test is itself on a timer.</b>",
+ x:{ttl:"Hours since onset",tk:[[0,"0"],[.167,"12"],[.333,"24"],[.5,"36"],[.667,"48"],[.833,"60"],[1,"72"]]},
+ rev:[
+  {p:.055,s:.44,w:"Hour 4",saw:"Severe headache, maximal within minutes. No focal signs, no meningism, alert and orientated. Some photophobia.",
+   full:"The examination is normal in every curve below at this point. Nothing you can do in the room separates them."}
+ ],
+ cur:[
+  {n:"Subarachnoid haemorrhage",c:"#c25a48",truth:true,pts:[[0,.02],[.2,.50],[.4,.42],[.55,.66],[.7,.85],[.85,.70],[1,.50]],iv:{p:0.71,lab:"Aneurysm secured"},
+   why:"May settle substantially before it declares itself, then deteriorate abruptly.",
+   tell:"You asked whether this really happens — it does, and the dip is not a drawing convention. A systematic review found a <b>sentinel or warning headache preceding aneurysmal subarachnoid haemorrhage in 10–43%</b> of cases across good-quality studies. Most fell within two weeks of the major bleed, with a peak within one day and a second peak at 7–14 days. A patient who feels better at hour 24 is on this curve too. <b>Improvement is not exclusion.</b>"},
+  {n:"First severe migraine",c:"#17a2a0",pts:[[0,.03],[.18,.50],[.35,.30],[.55,.10],[1,.03]],
+   why:"Peaks then resolves cleanly.",
+   tell:"Identical at hour 4. Distinguished by the next 48 hours, or by a test taken inside its own window."},
+  {n:"Cervicogenic headache",c:"#6c7a93",pts:[[0,.05],[.2,.36],[.45,.28],[.7,.20],[1,.14]],
+   why:"Grumbles down slowly.",
+   tell:"Often the label attached retrospectively to whichever headache did not turn out badly."},
+  {n:"Headache with a systemic viral illness",c:"#7c8cff",pts:[[0,.04],[.2,.38],[.4,.30],[.65,.16],[1,.05]],
+   why:"Other symptoms arrive and explain it.",
+   tell:"The explanation arrives after the decision has to be made."}
+ ],
+ win:{from:0,to:.083,lab:"CT most sensitive in this period",sub:"97% within 6h, falling to 75% at 18–24h"},
+ att:{p:.5,who:"The patient",cred:"“It settled on its own, so it can’t have been anything.”",
+  act:"Look at the red curve at hour 36. It settled on its own too."},
+ point:"This scenario adds a second timer. Not only does the illness have a trajectory — <b>so does the sensitivity of the test you would use to catch it</b>. The green band is that second curve. In the SHED study of 3,663 patients, non-contrast CT was 97% sensitive within 6 hours of headache onset (95% CI 87–99), 95% at 6–12 hours, 94% at 12–18, and <b>75% at 18–24</b>. Delay does not only postpone the answer; it degrades your ability to get one at all. That is a different argument from “wait and see”, and knowing which of the two situations you are in is the actual skill.",
+ refs:["shed","polm","hene","unc"]
+},
+{
+ id:"back",
+ t:"Back pain with no red flags",
+ sub:"Low back pain, no neurology, no red flags, reviewed twice. <b>Here the boring answer is the right one — which is the point.</b>",
+ x:{ttl:"Weeks since onset",tk:[[0,"0"],[.25,"3"],[.5,"6"],[.75,"9"],[1,"12"]]},
+ rev:[
+  {p:.083,s:.38,w:"Week 1",saw:"Mechanical low back pain after lifting. No neurology, no red flags. Advice, analgesia, keep moving.",
+   full:"Entirely ordinary and entirely correct."},
+  {p:.25,s:.30,w:"Week 3",saw:"Improving slowly. Still sore. Still no neurology. Still no red flags.",
+   full:"Two normal reviews. The temptation now is to relax the safety net, because two normal consultations feel like more reassurance than one. They are not: they tell you about weeks 1 and 3."}
+ ],
+ cur:[
+  {n:"Mechanical back pain, resolving",c:"#35a65a",truth:true,pts:[[0,.10],[.45,.20],[.65,.12],[1,.05]],
+   why:"The overwhelming majority. Slow, unremarkable improvement.",
+   tell:"Nothing needs to happen for this curve to occur, which is why almost anything done at week 3 will get the credit."},
+  {n:"Cauda equina syndrome evolving",c:"#c25a48",pts:[[0,.10],[.4,.44],[.5,.72],[.6,.88],[.75,.60],[1,.40]],iv:{p:0.61,lab:"Decompression"},
+   why:"Diverges from a background that looked identical — but not always quickly.",
+   tell:"Worth correcting the common assumption that this declares itself within hours. A review in <i>Bone &amp; Joint 360</i> describes cauda equina compression as a continuous biological process on an exponential curve, staged from suspected (CESS) through incomplete (CESI) to retention (CESR), and states plainly that <b>“for any given individual, we do not know the gradient of their individual graph”</b>. That sentence is this entire tool, written by spinal surgeons. It is also why the safety net has to name specific symptoms with a time frame rather than say “come back if it’s worse”."},
+  {n:"Vertebral metastasis",c:"#b569c4",pts:[[0,.08],[.45,.38],[.65,.50],[.85,.62],[1,.70]],
+   why:"Fails to improve, then slowly worsens.",
+   tell:"Identified by the absence of the expected downward slope — which requires someone to have stated what it should be."},
+  {n:"Inflammatory back pain",c:"#33506e",pts:[[0,.10],[.45,.34],[.6,.30],[.8,.34],[1,.30]],
+   why:"Plateaus and fluctuates for months.",
+   tell:"Typically diagnosed years late, for exactly this reason."}
+ ],
+ att:{p:.28,who:"Whatever was tried at week 3",cred:"Physiotherapy, an exercise sheet, a different analgesic, an osteopath, a supplement.",
+  act:"On the true curve here, week 3 is already on the downslope. Meta-analysis of three-armed trials found that <b>improvement in no-treatment arms accounted for around a quarter of the total improvement seen in actively treated groups</b>. Whoever is standing there when a self-limiting condition self-limits gets the testimonial."},
+ point:"Deliberately, the true curve here is the benign one. If the frightening diagnosis were always the answer, this tool would be teaching the wrong lesson — that uncertainty should always be resolved by escalation. <b>The argument is not that you should assume the worst curve; it is that you should know you are looking at a point.</b>",
+ refs:["krog","jones","ces"]
+}
+];
+
+SC.push(
+{
+ id:"mood",
+ t:"Low mood after a life event",
+ sub:"Seen at two weeks and again at six weeks, when things are at their worst. <b>Treatment starts at the trough.</b>",
+ x:{ttl:"Weeks",tk:[[0,"0"],[.25,"6"],[.5,"12"],[.75,"18"],[1,"24"]]},
+ rev:[
+  {p:.083,s:.46,w:"Week 2",saw:"Low mood, poor sleep, appetite down, functioning at work. No risk identified. Watchful waiting agreed.",
+   full:"A reasonable plan, and one the patient may later describe as being fobbed off."},
+  {p:.25,s:.58,w:"Week 6",saw:"Worse. Not coping at work. Still no risk identified. Treatment started.",
+   full:"Also reasonable. But note where on the curve this is happening: at or near the lowest point. People consult at their worst, which means treatment almost always begins immediately before an improvement that was arriving anyway."}
+ ],
+ cur:[
+  {n:"Adjustment reaction, resolving",c:"#35a65a",truth:true,pts:[[0,.10],[.42,.44],[.6,.28],[.8,.16],[1,.10]],
+   why:"Improves over weeks to months with time and circumstance.",
+   tell:"Indistinguishable from a treated depressive episode by looking at the outcome, which is why individual clinical experience cannot establish efficacy."},
+  {n:"Major depressive episode",c:"#c25a48",pts:[[0,.10],[.45,.66],[.65,.62],[.85,.50],[1,.42]],
+   why:"Deepens and stays down.",
+   tell:"Diverges from the green curve only after week 12 — six weeks after the decision had to be made."},
+  {n:"Recurrent, relapsing course",c:"#7c8cff",pts:[[0,.10],[.4,.34],[.55,.22],[.68,.50],[.8,.60],[.9,.30],[1,.22]],
+   why:"Gets better, then worse, then better.",
+   tell:"A patient reviewed at week 12 on this curve looks recovered. A patient reviewed at week 16 looks like a treatment failure. Same curve."},
+  {n:"Bipolar spectrum emerging",c:"#33506e",pts:[[0,.10],[.42,.30],[.55,.14],[.7,.34],[.85,.56],[1,.40]],
+   why:"An unusually rapid and complete recovery, then a different problem.",
+   tell:"The improvement itself is the finding. Getting better too fast is data."}
+ ],
+ att:{p:.26,who:"Both patient and clinician",cred:"The treatment started at week 6.",
+  act:"People consult at their worst. Anything started at the worst point is followed by improvement — this is regression to the mean, and it is not a small effect. It is also why “it worked for my patient” is not evidence, and why a clinician can accumulate thirty years of confident experience with an ineffective treatment."},
+ point:"Regression to the mean is the statistical engine underneath every attribution error in this tool. <b>Patients present at extremes; extremes are followed by less extreme values whatever you do.</b> The clinical consequence is not therapeutic nihilism — it is that the decision to treat has to be justified by evidence rather than by the outcome you observed afterwards.",
+ refs:["krog","unc"]
+},
+{
+ id:"limb",
+ t:"Spreading redness on a limb",
+ sub:"Reviewed at eight hours and again at twenty. The redness is worse both times. <b>The question is not how bad it is — it is how fast.</b>",
+ x:{ttl:"Hours",tk:[[0,"0"],[.25,"12"],[.5,"24"],[.75,"36"],[1,"48"]]},
+ rev:[
+  {p:.167,s:.30,w:"Hour 8",saw:"Warm, red, tender area on the lower leg. Margin marked with a pen. Apyrexial. Oral antibiotic started.",
+   full:"Marking the margin is the single most useful thing done in this consultation, because it converts a point into a gradient at the next review."},
+  {p:.417,s:.44,w:"Hour 20",saw:"Redness beyond the marked line. Pain now out of proportion to the appearance. Observations still within normal limits.",
+   full:"“Pain out of proportion” is a statement about the mismatch between two curves — the symptom curve and the sign curve — rising at different rates. That mismatch is the finding, not the pain score."}
+ ],
+ cur:[
+  {n:"Cellulitis responding to oral antibiotics",c:"#35a65a",pts:[[0,.10],[.55,.38],[.7,.26],[.85,.14],[1,.07]],iv:{p:0.18,lab:"Oral antibiotics started"},
+   why:"Worsens for 24–48 hours before turning, which is normal and routinely misread as failure.",
+   tell:"Two curves are both worse at hour 20. Only one of them is going to turn."},
+  {n:"Necrotising soft-tissue infection",c:"#c25a48",truth:true,pts:[[0,.08],[.52,.66],[.62,.86],[.72,.95],[.85,.75],[1,.55]],iv:{p:0.73,lab:"Debridement"},
+   why:"Rises steeply and does not stop.",
+   tell:"At hour 8 it sits at exactly the same height as the green curve. By hour 20 it is at a similar height but on a much steeper slope. <b>The gradient discriminates hours before the absolute severity does.</b>"},
+  {n:"Cellulitis failing oral therapy",c:"#7c8cff",pts:[[0,.10],[.58,.52],[.72,.56],[.85,.44],[1,.28]],iv:{p:0.73,lab:"IV antibiotics"},
+   why:"Keeps climbing then plateaus; needs intravenous treatment, not surgery.",
+   tell:"The commonest reason for a rising curve, and the reason the steep curve gets missed."},
+  {n:"Venous stasis and eczema",c:"#6c7a93",pts:[[0,.14],[.6,.38],[.8,.34],[1,.30]],
+   why:"Flat, bilateral, chronic.",
+   tell:"Distinguished by the history rather than the appearance."}
+ ],
+ att:{p:.45,who:"The surgical team",cred:"The clinician who “sent them in at the right time”.",
+  act:"What that clinician actually did was draw a line on the skin at hour 8 so that hour 20 could be compared with something. The credit belongs to the marking, not the intuition."},
+ point:"Every other scenario asks you to accept that a single point is uninformative. This one shows the fix: <b>engineer a second point</b>. Mark the margin, record the exact severity, book a defined review, ask the patient to photograph it. Converting a point into a gradient is the most practical thing in this whole tool.",
+ refs:["ng253","jones","hene"]
+},
+{
+ id:"torsion",
+ t:"Acute testicular pain",
+ sub:"Two hours of severe unilateral testicular pain. <b>Some curves have a cliff you cannot see on the severity axis.</b>",
+ x:{ttl:"Hours since onset",tk:[[0,"0"],[.25,"6"],[.5,"12"],[.75,"18"],[1,"24"]]},
+ rev:[
+  {p:.083,s:.40,w:"Hour 2",saw:"Severe unilateral pain, nausea, tender high-riding testis. Well otherwise.",
+   full:"The classical signs are helpful when present and unreliable when absent. This is a scenario where the test of time is the wrong tool."}
+ ],
+ cur:[
+  {n:"Testicular torsion",c:"#c25a48",truth:true,pts:[[0,.05],[.25,.56],[.4,.68],[.55,.62],[.7,.50],[1,.44]],
+   why:"Pain may plateau or even ease as the testis becomes non-viable.",
+   tell:"<b>Falling pain here is not improvement.</b> The severity axis says better; the organ says worse. This is the one curve shape in the tool where the line going down is the worst possible sign."},
+  {n:"Epididymo-orchitis",c:"#33506e",pts:[[0,.06],[.3,.50],[.5,.46],[.75,.32],[1,.20]],
+   why:"Builds over a day or two and eases with treatment.",
+   tell:"Genuinely difficult to separate at hour 2, which is why the decision is surgical rather than diagnostic."},
+  {n:"Torsion of a testicular appendage (appendix testis)",c:"#17a2a0",pts:[[0,.05],[.28,.44],[.5,.36],[.75,.22],[1,.12]],
+   why:"A small embryological remnant on the upper pole of the testis twists on its own stalk. Not dangerous, and the testis itself is never at risk.",
+   tell:"Worth knowing, because it is the commonest mimic in this age group. Classically there is a tender nodule at the upper pole rather than a diffusely tender high-riding testis, sometimes with a <b>blue dot</b> visible through the scrotal skin — the cyanotic torsed appendage showing through. It needs no surgery; the appendage calcifies and degenerates over about two weeks. The catch is that none of those features is reliable enough to let you stand an exploration down."},
+  {n:"Referred renal colic",c:"#7c8cff",pts:[[0,.02],[.2,.52],[.35,.24],[.5,.44],[.7,.16],[1,.06]],
+   why:"Comes in waves.",
+   tell:"The waveform is the clue, and needs more than one point to see."}
+ ],
+ win:{from:0,to:.25,lab:"Salvage window — explore inside this",sub:"over 90% saved within 6h · about 50% by 12h · under 10% after 24h"},
+ att:{p:.167,who:"Everyone involved",cred:"The surgeon who explored at hour 4 and saved the testis.",
+  act:"The exploration mattered and the outcome here is a good one — but the decisive event happened two hours earlier and nobody gets any credit for it. The pain was severe enough to bring them in at hour 2, so the whole pathway ran inside the window where over 90% of testes are salvaged. Beyond 12 hours that falls to around half; after 24 hours, to under 10%. Change nothing except the patient’s threshold for seeking help, or add one triage delay, and the same competent surgeon operating on identical findings loses the testis. <b>The curve drawn here is the untreated natural history</b>, which is why the plateau after hour 12 must never be read as improvement."},
+ point:"This is the deliberate counterexample. Everywhere else the tool argues for using time as a diagnostic instrument. Here time is the disease, and the severity axis actively lies: the pain plateaus and then eases as the testis becomes non-viable, so the line coming down is the worst thing on this graph. <b>The skill is not “wait and see” or “act now” — it is knowing which shape of curve you are on</b>, and the small number of curves with an irreversible cliff are the ones worth memorising as a list.",
+ refs:["howe","stat","hene","unc"]
+},
+{
+ id:"bronch",
+ t:"An infant with bronchiolitis on day two",
+ sub:"Wheezy, feeding a little less, day 2 of a cold. <b>The counterweight scenario: sometimes you do know the shape.</b>",
+ x:{ttl:"Days of illness",tk:[[0,"0"],[.2,"2"],[.4,"4"],[.6,"6"],[.8,"8"],[1,"10"]]},
+ rev:[
+  {p:.2,s:.28,w:"Day 2",saw:"Coryza, wheeze and crackles, mild recession, feeding about three-quarters of normal, saturations fine.",
+   full:"Unlike almost every other scenario here, this illness has a well-described and reasonably reliable shape."}
+ ],
+ cur:[
+  {n:"Typical course — worst on days three to five",c:"#35a65a",truth:true,pts:[[0,.05],[.35,.46],[.5,.52],[.62,.42],[.78,.24],[1,.08]],
+   why:"Predictable rise to a nadir around days 3–5, then steady recovery.",
+   tell:"Because the shape is known, the safety net can be specific: <b>“this will get worse before it gets better, worst around day three to five, and here is exactly what should make you call before then.”</b>"},
+  {n:"Requiring admission for feeding or oxygen",c:"#33506e",pts:[[0,.05],[.35,.50],[.5,.66],[.62,.60],[.8,.34],[1,.12]],iv:{p:0.5,lab:"Admitted · feeding support"},
+   why:"Same shape, higher amplitude.",
+   tell:"Distinguished by feeding volume and work of breathing, both of which the carer can monitor at home if told what to watch."},
+  {n:"Secondary bacterial infection",c:"#c25a48",pts:[[0,.05],[.4,.44],[.55,.40],[.7,.58],[.82,.44],[1,.16]],iv:{p:0.71,lab:"Antibiotics"},
+   why:"A second peak after the first has started to settle.",
+   tell:"The <i>second</i> rise is the signal — deterioration after improvement — and it is only recognisable against a stated expected curve."},
+  {n:"Not bronchiolitis — an undiagnosed cardiac cause",c:"#b569c4",pts:[[0,.06],[.4,.40],[.6,.56],[.8,.70],[1,.74]],
+   why:"Never turns.",
+   tell:"Identified by failing to follow the expected curve, in a condition where the expected curve is actually known."}
+ ],
+ att:{p:.5,who:"Nobody, usefully",cred:"Any treatment given around days 3–5 will be credited with the recovery on days 6–8.",
+  act:"Bronchiolitis is the cleanest natural experiment in general practice for this: the curve is well described, the effective treatments are few, and the recoveries are universal."},
+ point:"Not all uncertainty is irreducible. Where the natural history is well characterised, <b>the trajectory becomes a communication tool rather than a problem</b>. This is the difference between vague safety netting and useful safety netting, and it is the practical output of the whole model: say the shape, say the timing, say the deviation that should trigger contact.",
+ refs:["jones","ng143","ng254"]
+},
+{
+ id:"slow",
+ t:"Tiredness and gradual weight loss",
+ sub:"Three consultations over eight months. Each one is individually reassuring. <b>Nothing here is too early. The gradient is too shallow to see.</b>",
+ x:{ttl:"Months",tk:[[0,"0"],[.22,"2"],[.44,"4"],[.67,"6"],[.89,"8"],[1,"9"]]},
+ rev:[
+  {p:.18,s:.16,w:"Month 2",saw:"Tired. Bloods largely normal. Weight recorded. Sleep and stress discussed.",
+   full:"Sensible. The weight is recorded, which turns out to matter more than anything else in the consultation."},
+  {p:.44,s:.22,w:"Month 5",saw:"Still tired. Weight 2 kg down. Attributed to eating less because of low mood.",
+   full:"A plausible explanation that fits. Explanations that fit are how shallow gradients survive."},
+  {p:.70,s:.30,w:"Month 8",saw:"Tired. A further 3 kg down. Nothing focal on examination.",
+   full:"Each interval is small. Across the three, the line has a clear direction — but only if someone plots it."}
+ ],
+ cur:[
+  {n:"Slowly progressive malignancy",c:"#c25a48",truth:true,pts:[[0,.06],[.82,.42],[.92,.58],[1,.72]],
+   why:"A shallow, steady, upward line.",
+   tell:"Never abrupt at any single consultation. The Scottish referral guidelines are largely an attempt to convert exactly this kind of shallow multi-point gradient into a threshold that triggers action."},
+  {n:"Iron deficiency",c:"#b569c4",pts:[[0,.06],[.85,.24],[1,.14]],iv:{p:0.86,lab:"Replacement"},
+   why:"Corrects once found.",
+   tell:"Found by a test, not by time."},
+  {n:"Hypothyroidism",c:"#17a2a0",pts:[[0,.06],[.85,.28],[1,.22]],iv:{p:0.86,lab:"Levothyroxine"},
+   why:"Plateaus.",
+   tell:"Also found by a test."},
+  {n:"Chronic stress and poor sleep",c:"#6c7a93",pts:[[0,.06],[.85,.26],[1,.20]],
+   why:"Fluctuates around a level.",
+   tell:"The default explanation, and the one that makes the other three curves invisible."}
+ ],
+ att:{p:.72,who:"The system",cred:"The clinician at month 8 who “finally investigated”.",
+  act:"They had something the earlier clinicians did not: three weights. The diagnostic instrument was the record, not the consultation."},
+ point:"This is the failure mode that is the opposite of “seen too early”. Nobody saw this patient too early — <b>they saw them too often, at intervals shorter than the signal</b>. The remedy is not more consultations. It is plotting the same measurement across them, so a series of unremarkable points becomes a line with a direction.",
+ refs:["srg","hene","unc"]
+},
+{
+ id:"freq",
+ t:"The frequent attender with the same symptom",
+ sub:"Five consultations over eighteen months for the same complaint. <b>Familiarity flattens the curve.</b>",
+ x:{ttl:"Months",tk:[[0,"0"],[.25,"4.5"],[.5,"9"],[.75,"13.5"],[1,"18"]]},
+ rev:[
+  {p:.10,s:.30,w:"Visit 1",saw:"Long-standing symptom, extensively investigated before, nothing found.",full:"The frame is set here, and every subsequent consultation inherits it."},
+  {p:.26,s:.26,w:"Visit 2",saw:"Same. Slightly better.",full:"Reinforces the frame."},
+  {p:.42,s:.32,w:"Visit 3",saw:"Same. Slightly worse.",full:"Within the range of normal fluctuation for this patient."},
+  {p:.58,s:.28,w:"Visit 4",saw:"Same.",full:"By now the consultation is about eight minutes long and largely about the last consultation."},
+  {p:.74,s:.38,w:"Visit 5",saw:"Same, but described slightly differently. Worse at night now.",
+   full:"The height has barely changed. The <i>description</i> has. That is the only thing on this graph that has moved."}
+ ],
+ cur:[
+  {n:"The same chronic condition, unchanged",c:"#6c7a93",pts:[[0,.28],[.18,.24],[.34,.30],[.5,.26],[.66,.32],[.85,.30],[1,.28]],
+   why:"Noise around a stable baseline.",
+   tell:"True for the first four visits, and the reason nobody looks again."},
+  {n:"A new problem inside the noise",c:"#c25a48",truth:true,pts:[[0,.28],[.18,.24],[.34,.30],[.5,.26],[.66,.34],[.85,.52],[.93,.70],[1,.84]],
+   why:"Starts below the amplitude of the existing variation.",
+   tell:"A change of this size in a patient you had never met would be a clear signal. In a patient you have seen five times it disappears into the baseline. This is measurement, not empathy: <b>the same delta is a smaller fraction of the observed variance.</b>"},
+  {n:"Slow deconditioning",c:"#7c8cff",pts:[[0,.28],[.18,.24],[.34,.30],[.5,.26],[.66,.34],[.88,.44],[1,.50]],
+   why:"A gentle upward drift.",
+   tell:"Real, common, and treatable, and also invisible for the same reason."},
+  {n:"Improving with self-management",c:"#35a65a",pts:[[0,.28],[.18,.24],[.34,.30],[.5,.26],[.66,.32],[.88,.24],[1,.16]],
+   why:"A gentle downward drift.",
+   tell:"Equally invisible, and equally worth noticing — this patient is being labelled as heartsink while getting better."}
+ ],
+ att:{p:.78,who:"The next clinician",cred:"The locum who “actually listened” and ordered the test.",
+  act:"They had a genuine advantage that had nothing to do with listening harder: no prior. They saw one point with no baseline to normalise it against. The regular clinician’s knowledge of the patient was real and was also the thing obscuring the signal."},
+ point:"Continuity of care is strongly and consistently associated with better outcomes, and this scenario is not an argument against it. It is an argument that <b>continuity has a specific blind spot</b> — a change smaller than the variation you have already learned to expect. The defence is to ask what has changed since last time about the <i>description</i>, and to re-take the history occasionally as if new.",
+ refs:["unc","hene","jones"]
+},
+{
+ id:"trough",
+ t:"Better by the time of the appointment",
+ sub:"Referred or reviewed after an acute episode, and by the time they are seen they are entirely well. <b>You can also see a patient too late in the episode.</b>",
+ x:{ttl:"Days",tk:[[0,"0"],[.25,"3.5"],[.5,"7"],[.75,"10.5"],[1,"14"]]},
+ rev:[
+  {p:.357,s:.10,w:"Day 5 — the appointment",saw:"Completely well. Examination normal. Observations normal. Describes something dramatic five days ago.",
+   full:"The strongest reassurance in medicine — a normal examination — and here it means almost nothing, because it is a measurement taken at a trough."}
+ ],
+ cur:[
+  {n:"It has resolved",c:"#35a65a",truth:true,pts:[[0,.05],[.15,.44],[.25,.36],[.6,.05],[1,.03]],
+   why:"A single self-limiting episode.",
+   tell:"Common, and the correct answer here — but arrived at by history and by follow-up, not by the normal examination."},
+  {n:"Relapsing and remitting, seen at a trough",c:"#7c8cff",pts:[[0,.05],[.15,.44],[.25,.36],[.5,.36],[.62,.52],[.75,.20],[.88,.44],[1,.30]],
+   why:"Normal between episodes, by definition.",
+   tell:"Every examination between attacks is normal. Diagnosing this by examination is impossible; diagnosing it by history is straightforward."},
+  {n:"Intermittent obstruction",c:"#c25a48",pts:[[0,.04],[.12,.50],[.25,.30],[.55,.14],[.68,.62],[.8,.24],[1,.58]],
+   why:"Dramatic peaks, entirely normal troughs, escalating.",
+   tell:"The classic diagnosis lost to a normal examination in a well patient."},
+  {n:"Waxing and waning inflammatory condition",c:"#33506e",pts:[[0,.06],[.15,.40],[.25,.30],[.55,.26],[.7,.40],[.85,.28],[1,.36]],
+   why:"Never fully normal, never obviously abnormal.",
+   tell:"Needs a series, not a snapshot."}
+ ],
+ att:{p:.93,who:"Whoever happens to be on duty during an episode",cred:"The clinician who finally “caught it happening”, or the test that was finally done at the right moment.",
+  act:"The honest version is that this takes far longer than the graph makes it look. Intermittent conditions are diagnosed when a peak and an assessment coincide, and for most of them that coincidence is chance rather than skill. The realistic gap between the first normal examination and the diagnosis is months to years, not days, and it is filled with normal examinations, normal tests, and a quietly accumulating suspicion that the patient is exaggerating. Nobody in that sequence does anything identifiably wrong, which is exactly why it keeps happening. Meanwhile: reassurance based on a trough is the same error as alarm based on a peak."},
+ point:"“You can see a patient too early” has a twin that is said much less often: <b>you can see them too late in the episode to learn anything.</b> Both are the same statement — an examination measures where the patient is on the curve, and its usefulness depends entirely on which part of the curve you happened to sample. When the patient is well and the story is not, <b>the story wins</b> — and the practical consequence is that you often have to act on history alone, because waiting to witness an episode yourself can take years.",
+ refs:["hene","unc","jones"]
+},
+{
+ id:"years",
+ t:"The same graph, over years",
+ sub:"An older person with four unplanned admissions over four years. <b>Same axes. Different units. The shape of the curve is now the conversation.</b>",
+ x:{ttl:"Years",tk:[[0,"0"],[.25,"1"],[.5,"2"],[.75,"3"],[1,"4"]]},
+ rev:[
+  {p:.20,s:.34,w:"Admission 1",saw:"Acute illness, recovers, home in four days. Back to baseline.",full:"Or nearly baseline. Almost nobody records the baseline, so “back to normal” is asserted rather than measured."},
+  {p:.42,s:.44,w:"Admission 2",saw:"Similar illness, home in seven days. Needs some help now.",full:"The recovery is a little less complete. Individually unremarkable."},
+  {p:.62,s:.52,w:"Admission 3",saw:"Home in nine days. Package of care started.",full:"Third data point. The direction is now established, if anyone joins them up."},
+  {p:.80,s:.60,w:"Admission 4",saw:"Home in twelve days. Not back to previous function.",full:"By this point the trajectory is more informative than any individual admission, and it is the thing least likely to be discussed."}
+ ],
+ cur:[
+  {n:"Cancer trajectory — good function, then a short steep decline",c:"#b569c4",pts:[[0,.20],[.88,.78],[.95,.94],[1,1]],
+   why:"Function is maintained until a late, rapid fall.",
+   tell:"The trajectory most services are designed around, and the least common of the three in practice."},
+  {n:"Organ failure — sawtooth, each crisis survivable until one is not",c:"#c25a48",truth:true,pts:[[0,.18],[.86,.84],[.90,.62],[.94,.90],[1,.96]],
+   why:"Repeated acute deteriorations with incomplete recovery between them.",
+   tell:"Any one crisis could be the last, and none of them looks different at the time. The prognostic question is not “is this the terminal event” but “what is the slope between the peaks”."},
+  {n:"Frailty — a long, slow drift",c:"#33506e",pts:[[0,.22],[.9,.68],[1,.76]],
+   why:"Gradual decline over years with no clear inflection.",
+   tell:"Has no moment that prompts a conversation, which is why the conversation usually does not happen."},
+  {n:"A reversible cause, found late",c:"#35a65a",pts:[[0,.18],[.9,.42],[1,.28]],iv:{p:0.9,lab:"Cause identified and corrected"},
+   why:"Turns around when something correctable is identified.",
+   tell:"The reason trajectory language must not become a self-fulfilling prophecy. Naming a decline is not the same as accepting it."}
+ ],
+ att:{p:.84,who:"The family, afterwards",cred:"“Nobody ever told us where this was heading.”",
+  act:"Usually true, and usually not because anyone was avoiding it. Each admission was managed well in isolation. The trajectory belonged to no single consultation, so nobody owned it."},
+ point:"Three broad trajectories of decline — a short period of evident decline in cancer, a sawtooth in organ failure, and a prolonged drift in frailty — are the best-known clinical use of this exact graph. Recognising which one someone is on is what makes anticipatory care planning, realistic conversations and, where relevant, powers of attorney and welfare guardianship under the Adults with Incapacity (Scotland) Act timely rather than retrospective. <b>The whole tool scales: the same picture works over hours and over years.</b>",
+ refs:["murr","awi","unc"]
+}
+);
+
+/* ============================ engine ============================ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const PL=58,PR=46,PT=30,PB=48,W=1000;
+let H=560, PH=0, BY=0;
+const PW=W-PL-PR;
+function sizePlot(){
+  const w=document.querySelector(".plotwrap");
+  const r=w?w.getBoundingClientRect():{width:1000,height:560};
+  const ar=(r.height||560)/Math.max(r.width||1000,1);
+  H=Math.max(380,Math.min(880,Math.round(1000*ar)));
+  BY=H-PB; PH=BY-PT;
+  document.getElementById("plot").setAttribute("viewBox","0 0 1000 "+H);
+}
+sizePlot();
+const px=p=>PL+p*PW, py=s=>BY-s*PH;
+const KEY="trajectory.v1";
+let idx=0, revealed=false, attrOn=false, pick=-1, focusIdx=-1;
+let scale=1, pref=1, ov={};
+
+try{ov=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){ov={}}
+
+/* ---- overrides ---- */
+function S(){ // current scenario merged with overrides
+  const b=SC[idx], o=ov[b.id]||{};
+  const m=Object.assign({},b);
+  ["t","sub","point"].forEach(k=>{if(o[k]!=null)m[k]=o[k]});
+  m.rev=b.rev.map((r,i)=>Object.assign({},r,(o.rev&&o.rev[i])||{}));
+  m.cur=b.cur.map((c,i)=>Object.assign({},c,(o.cur&&o.cur[i])||{})).filter(c=>!c.del);
+  return m;
+}
+function setOv(field,i,key,val){
+  const id=SC[idx].id; ov[id]=ov[id]||{};
+  if(i==null){ov[id][field]=val}
+  else{ov[id][field]=ov[id][field]||[]; ov[id][field][i]=ov[id][field][i]||{}; ov[id][field][i][key]=val}
+  try{localStorage.setItem(KEY,JSON.stringify(ov))}catch(e){}
+}
+
+/* ---- geometry ---- */
+function buildPts(cur,revs){
+  const eps=.02;
+  let p=cur.pts.filter(pt=>!revs.some(r=>Math.abs(r.p-pt[0])<eps)).slice();
+  revs.forEach(r=>p.push([r.p,r.s]));
+  p.sort((a,b)=>a[0]-b[0]);
+  if(p[0][0]>.001)p.unshift([0,p[0][1]]);
+  if(p[p.length-1][0]<.999)p.push([1,p[p.length-1][1]]);
+  return p;
+}
+function smooth(pts){
+  const P=pts.map(a=>[px(a[0]),py(a[1])]);
+  if(P.length<2)return"";
+  let d="M"+P[0][0].toFixed(1)+","+P[0][1].toFixed(1);
+  for(let i=0;i<P.length-1;i++){
+    const p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||P[i+1];
+    let c1y=p1[1]+(p2[1]-p0[1])/6, c2y=p2[1]-(p3[1]-p1[1])/6;
+    const lo=Math.min(p1[1],p2[1]),hi=Math.max(p1[1],p2[1]);
+    c1y=Math.max(lo,Math.min(hi,c1y)); c2y=Math.max(lo,Math.min(hi,c2y));
+    const c1x=p1[0]+(p2[0]-p0[0])/6, c2x=p2[0]-(p3[0]-p1[0])/6;
+    d+="C"+c1x.toFixed(1)+","+c1y.toFixed(1)+" "+c2x.toFixed(1)+","+c2y.toFixed(1)
+      +" "+p2[0].toFixed(1)+","+p2[1].toFixed(1);
+  }
+  return d;
+}
+const esc=t=>String(t==null?"":t);
+function el(n,a){const e=document.createElementNS("http://www.w3.org/2000/svg",n);
+  for(const k in a)e.setAttribute(k,a[k]);return e}
+
+/* ---- draw ---- */
+function draw(){
+  sizePlot();
+  const sc=S(), svg=$("#plot"); svg.innerHTML="";
+  const dY=py(.95), wY=py(.03);
+  svg.appendChild(el("rect",{x:PL,y:PT,width:PW,height:dY-PT,class:"deadband"}));
+  if(sc.win){
+    svg.appendChild(el("rect",{x:px(sc.win.from),y:dY,width:px(sc.win.to)-px(sc.win.from),
+      height:BY-dY,fill:"rgba(53,166,90,.11)"}));
+    svg.appendChild(el("line",{x1:px(sc.win.to),y1:dY,x2:px(sc.win.to),y2:BY,
+      stroke:"#2f6e4e","stroke-width":1.2,"stroke-dasharray":"4 3"}));
+    const wl=el("text",{x:px(sc.win.to)+8,y:dY+16,class:"winlab"});
+    wl.textContent="\u25B8 "+sc.win.lab; svg.appendChild(wl);
+    if(sc.win.sub){
+      const ws=el("text",{x:px(sc.win.to)+8,y:dY+30,class:"winsub"});
+      ws.textContent=sc.win.sub; svg.appendChild(ws);
+    }
+  }
+  svg.appendChild(el("line",{x1:PL,y1:dY,x2:PL+PW,y2:dY,class:"deadline"}));
+  svg.appendChild(el("line",{x1:PL,y1:wY,x2:PL+PW,y2:wY,class:"wellline"}));
+  let t=el("text",{x:PL+4,y:dY-6,class:"zlab"}); t.textContent="Death"; svg.appendChild(t);
+  t=el("text",{x:PL+4,y:wY+14,class:"zlab"}); t.textContent="Well"; svg.appendChild(t);
+  svg.appendChild(el("line",{x1:PL,y1:PT,x2:PL,y2:BY,class:"ax"}));
+  svg.appendChild(el("line",{x1:PL,y1:BY,x2:PL+PW,y2:BY,class:"ax"}));
+  sc.x.tk.forEach(k=>{
+    svg.appendChild(el("line",{x1:px(k[0]),y1:BY,x2:px(k[0]),y2:BY+5,class:"ax"}));
+    const l=el("text",{x:px(k[0]),y:BY+19,class:"axlab","text-anchor":"middle"});
+    l.textContent=k[1]; svg.appendChild(l);
+  });
+  let xt=el("text",{x:PL+PW/2,y:BY+38,class:"axttl","text-anchor":"middle"});
+  xt.textContent=sc.x.ttl; svg.appendChild(xt);
+  let yt=el("text",{x:-(PT+PH/2),y:16,class:"axttl","text-anchor":"middle",
+    transform:"rotate(-90)"}); yt.textContent="Severity"; svg.appendChild(yt);
+
+  // curves
+  const ends=[],paths=[];
+  sc.cur.forEach((c,i)=>{
+    const cp=buildPts(c,sc.rev);
+    const path=el("path",{d:smooth(cp),class:"curve",stroke:c.c,"data-i":i});
+    svg.appendChild(path); paths[i]=path;
+    ends.push({i:i,col:c.c,y:py(cp[cp.length-1][1])});
+    if(revealed){
+      path.classList.add("show");
+      if(c.truth)path.classList.add("truth");
+      if(i===pick)path.classList.add("pick");
+      if(i===focusIdx)path.classList.add("focus");
+      const L=path.getTotalLength();
+      path.style.strokeDasharray=L; path.style.strokeDashoffset=L;
+      path.getBoundingClientRect();
+      path.style.transition="stroke-dashoffset .75s ease "+(i*.09)+"s, opacity .3s";
+      path.style.strokeDashoffset=0;
+    }
+  });
+  if(revealed){
+    ends.sort(function(a,b){return a.y-b.y});
+    for(var q=1;q<ends.length;q++){
+      if(ends[q].y-ends[q-1].y<19)ends[q].y=ends[q-1].y+19;
+    }
+    ends.forEach(function(e){
+      var y=Math.max(PT+11,Math.min(BY-7,e.y));
+      var g=el("g",{});
+      g.appendChild(el("circle",{cx:px(1)+19,cy:y,r:9.5,fill:e.col}));
+      var n=el("text",{x:px(1)+19,y:y+3.7,class:"bnum","text-anchor":"middle"});
+      n.textContent=String(e.i+1); g.appendChild(n); svg.appendChild(g);
+    });
+    sc.cur.forEach(function(c,i){
+      if(!c.iv)return;
+      var pa=paths[i],L=pa.getTotalLength(),tx=px(c.iv.p),lo=0,hi=L,pt=null;
+      for(var z=0;z<24;z++){var mid=(lo+hi)/2;pt=pa.getPointAtLength(mid);
+        if(pt.x<tx)lo=mid;else hi=mid;}
+      var g=el("g",{});
+      g.appendChild(el("path",{d:"M"+pt.x.toFixed(1)+","+(pt.y-12).toFixed(1)
+        +"l6,10.5h-12z",fill:c.c,stroke:"var(--solid)","stroke-width":1.4}));
+      var tl=el("text",{x:pt.x+10,y:pt.y-14,class:"ivt",fill:c.c});
+      tl.textContent=(i+1)+" \u00b7 "+c.iv.lab; g.appendChild(tl);
+      svg.appendChild(g);
+    });
+  }
+  // attribution
+  if(revealed&&attrOn&&sc.att){
+    const a=sc.att, g=el("g",{class:"attrib show"});
+    g.appendChild(el("line",{x1:px(a.p),y1:PT+8,x2:px(a.p),y2:BY,class:"attline"}));
+    g.appendChild(el("circle",{cx:px(a.p),cy:PT+8,r:4,class:"attdot"}));
+    const lab=el("text",{x:px(a.p)+7,y:PT+12,class:"atttx"});
+    lab.textContent="↑ credited here"; g.appendChild(lab);
+    svg.appendChild(g);
+  }
+  // review marks
+  sc.rev.forEach((r,i)=>{
+    const g=el("g",{}), X=px(r.p),Y=py(r.s),z=9;
+    g.appendChild(el("line",{x1:X-z,y1:Y-z,x2:X+z,y2:Y+z,class:"xm"}));
+    g.appendChild(el("line",{x1:X-z,y1:Y+z,x2:X+z,y2:Y-z,class:"xm"}));
+    const lab=el("text",{x:X,y:Y-16,class:"xlab","text-anchor":"middle"});
+    lab.textContent=r.w; g.appendChild(lab);
+    const hit=el("circle",{cx:X,cy:Y,r:18,class:"xhit"});
+    hit.addEventListener("click",()=>openRev(i)); g.appendChild(hit);
+    svg.appendChild(g);
+  });
+}
+
+/* ---- cards ---- */
+function cards(){
+  const sc=S();
+  $("#setup").innerHTML=(document.body.classList.contains("editing")
+    ?'<span contenteditable="true" data-f="sub">'+sc.sub+'</span>':sc.sub);
+  const rw=$("#revs"); rw.innerHTML="";
+  sc.rev.forEach((r,i)=>{
+    const d=document.createElement("div"); d.className="card";
+    d.style.borderLeftColor="#35a65a";
+    d.innerHTML='<div class="ct"><span class="dot" style="background:#35a65a"></span>'
+      +'<span '+(ed()?'contenteditable="true" data-f="rev" data-i="'+i+'" data-k="w"':'')+'>'+r.w+'</span></div>'
+      +'<div class="cs"><span '+(ed()?'contenteditable="true" data-f="rev" data-i="'+i+'" data-k="saw"':'')+'>'+r.saw+'</span> <span style="color:var(--gold)">&hellip;</span></div>';
+    d.addEventListener("click",e=>{if(!e.target.isContentEditable)openRev(i)});
+    rw.appendChild(d);
+  });
+  const cw=$("#curs"); cw.innerHTML="";
+  sc.cur.forEach((c,i)=>{
+    const d=document.createElement("div");
+    d.className="card"+(i===pick?" sel":"");
+    d.style.borderLeftColor=revealed?c.c:"transparent";
+    let mk="";
+    if(revealed){
+      if(c.truth)mk='<span class="mk t">What it was</span>';
+      if(i===pick)mk+='<span class="mk '+(c.truth?"p":"n")+'">Your call</span>';
+    }
+    d.innerHTML='<div class="ct">'+mk+'<span class="delx" data-del="'+i+'">&times;</span>'
+      +'<span class="bdg" style="background:'+(revealed?c.c:'var(--line)')+'">'+(i+1)+'</span>'
+      +'<span '+(ed()?'contenteditable="true" data-f="cur" data-i="'+i+'" data-k="n"':'')+'>'+c.n+'</span></div>'
+      +'<div class="cs"><span '+(ed()?'contenteditable="true" data-f="cur" data-i="'+i+'" data-k="why"':'')+'>'+c.why+'</span> <span style="color:var(--gold)">&hellip;</span></div>';
+    d.addEventListener("click",e=>{
+      if(e.target.isContentEditable)return;
+      if(e.target.dataset.del!=null){setOv("cur",+e.target.dataset.del,"del",true);render();return}
+      if(!revealed)pick=i; focusIdx=i; openCur(i); render(true);
+    });
+    cw.appendChild(d);
+  });
+  $("#cap").innerHTML=revealed
+    ? 'Lines are numbered to match the cards. <b>\u25B4 marks an intervention</b> — where a line falls after one, the fall is the treatment; where a line falls with no marker, that is the natural course; where a line keeps climbing, nothing turned it.'
+    : 'Two facts and nothing else. Every line below is still possible.';
+  $("#hint").textContent=revealed
+    ?"All of these pass through the same crosses. That is the argument."
+    :"Pick the one you think it is, then press Reveal. Click any card for the detail.";
+  $("#tScen").textContent=sc.t;
+  $("#tRev").textContent=sc.rev.length;
+  $("#tCur").textContent=revealed?1:sc.cur.length;
+  const st=$("#tState");
+  st.textContent=revealed?"Revealed":"Not revealed";
+  st.style.background=revealed?"#35a65a":"#6c7a93";
+  $("#tPick").style.display=pick>=0?"":"none";
+  if(pick>=0)$("#tPickN").textContent=sc.cur[pick]?sc.cur[pick].n:"—";
+  $("#bReveal").classList.toggle("on",revealed);
+  $("#bAttr").classList.toggle("on",attrOn);
+  $("#bAttr").style.opacity=revealed?1:.45;
+}
+const ed=()=>document.body.classList.contains("editing");
+
+/* ---- drawer ---- */
+function L(k,txt){const r=R[k];if(!r)return txt||"";
+  return '<a href="'+r.u+'" target="_blank" rel="noopener">'+(txt||r.t)+' \u2197</a>'}
+function refs(list){
+  if(!list||!list.length)return"";
+  return '<div class="refs">'+list.map(k=>R[k]?'<a href="'+R[k].u+'" target="_blank" rel="noopener">'
+    +R[k].t+' ↗</a>':"").join("")+'</div>';
+}
+function drawer(html){
+  $("#dwBody").innerHTML='<button class="btn tiny dclose" onclick="closeDrawer()">Close</button>'+html;
+  $("#drawer").classList.add("open"); setTimeout(refit,250);
+}
+function closeDrawer(){$("#drawer").classList.remove("open");setTimeout(refit,250)}
+function openRev(i){
+  const r=S().rev[i];
+  drawer('<div class="meta">Consultation · '+r.w+'</div><h3>What was in front of you</h3>'
+    +'<p>'+r.saw+'</p><p>'+r.full+'</p>');
+}
+function openCur(i){
+  const sc=S(),c=sc.cur[i];
+  if(!revealed){
+    drawer('<div class="meta">Candidate future</div><h3>'+c.n+'</h3><p>'+c.why+'</p>'
+      +'<p style="color:var(--faint)"><i>What would have told you apart from the others is hidden until you reveal.</i></p>');
+    return;
+  }
+  drawer('<div class="meta">'+(c.truth?"This is what it was":"Also consistent with the same consultations")
+    +'</div><h3>'+c.n+'</h3><p>'+c.why+'</p><p>'+c.tell+'</p>'
+    +'<h3 style="margin-top:12px">The point</h3><p>'+sc.point+'</p>'+refs(sc.refs));
+}
+function openAttr(){
+  const sc=S(); if(!sc.att)return;
+  drawer('<div class="meta">Attribution</div><h3>Who got the credit?</h3>'
+    +'<p><b>'+sc.att.who+' credited:</b> '+sc.att.cred+'</p>'
+    +'<p><b>What actually happened:</b> '+sc.att.act+'</p>'+refs(sc.refs));
+}
+
+/* ---- scale ---- */
+function apply(v){scale=Math.min(1.6,Math.max(.55,v));
+  document.documentElement.style.setProperty("--s",scale.toFixed(2))}
+function autofit(){const b=$("#pane");let g=0;
+  while(b.scrollHeight>b.clientHeight+2&&scale>.55&&g++<28){apply(scale-.04)}}
+function refit(){apply(pref);autofit()}
+
+/* ---- render ---- */
+function render(keepDrawer){
+  cards(); draw();
+  if(!keepDrawer&&$("#drawer").classList.contains("open"))closeDrawer();
+  requestAnimationFrame(refit);
+}
+function load(i,keepState){
+  idx=(i+SC.length)%SC.length;
+  if(!keepState){revealed=false;attrOn=false;pick=-1;focusIdx=-1}
+  $("#selScen").value=idx; closeDrawer(); render();
+}
+
+/* ---- controls ---- */
+$("#selScen").innerHTML=SC.map((s,i)=>'<option value="'+i+'">'+(i+1)+'. '+s.t+'</option>').join("");
+$("#selScen").addEventListener("change",e=>load(+e.target.value));
+$("#bPrev").onclick=()=>load(idx-1);
+$("#bNext").onclick=()=>load(idx+1);
+$("#bReveal").onclick=()=>{revealed=!revealed;if(!revealed)attrOn=false;render()};
+$("#bAttr").onclick=()=>{if(!revealed)return;attrOn=!attrOn;render(true);if(attrOn)openAttr();else closeDrawer()};
+$("#bUp").onclick=()=>{pref=Math.min(1.6,pref+.06);refit()};
+$("#bDown").onclick=()=>{pref=Math.max(.55,pref-.06);refit()};
+$("#bTheme").onclick=()=>{
+  const d=document.documentElement.getAttribute("data-theme")==="dark";
+  document.documentElement.setAttribute("data-theme",d?"light":"dark");
+  try{localStorage.setItem("traj.theme",d?"light":"dark")}catch(e){}
+  render(true);
+};
+$("#bEdit").onclick=()=>{
+  document.body.classList.toggle("editing");
+  $("#bEdit").classList.toggle("on",ed());
+  render(true);
+};
+document.addEventListener("input",e=>{
+  const t=e.target; if(!t.dataset||!t.isContentEditable)return;
+  const f=t.dataset.f;
+  if(f==="sub")setOv("sub",null,null,t.innerHTML);
+  else if(f==="rev"||f==="cur")setOv(f,+t.dataset.i,t.dataset.k,t.innerHTML);
+});
+$("#bExp").onclick=()=>{
+  const blob=new Blob([JSON.stringify(ov,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="trajectory-edits.json"; a.click();
+};
+$("#bImp").onclick=()=>$("#fileIn").click();
+$("#fileIn").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{ov=JSON.parse(r.result);localStorage.setItem(KEY,JSON.stringify(ov));render()}
+    catch(err){alert("That file could not be read as JSON.")}};
+  r.readAsText(f);
+});
+$("#bAll").onclick=()=>{
+  $("#allGrid").innerHTML=SC.map((s,i)=>
+    '<div class="card" data-g="'+i+'" style="border-left-color:'+(i===idx?"#a97400":"transparent")+'">'
+    +'<div class="ct">'+(i+1)+'. '+s.t+'</div><div class="cw">'+s.rev.length
+    +' consultation'+(s.rev.length>1?"s":"")+' · '+s.cur.length+' futures</div></div>').join("");
+  $$("#allGrid .card").forEach(c=>c.onclick=()=>{load(+c.dataset.g);$("#ovlAll").classList.remove("open")});
+  $("#ovlAll").classList.add("open");
+};
+document.addEventListener("keydown",e=>{
+  if(e.target.isContentEditable)return;
+  if(e.key==="Escape"){$$(".ovl").forEach(o=>o.classList.remove("open"));closeDrawer()}
+  if(e.key==="ArrowRight")load(idx+1);
+  if(e.key==="ArrowLeft")load(idx-1);
+  if(e.key.toLowerCase()==="r"){revealed=!revealed;if(!revealed)attrOn=false;render()}
+});
+addEventListener("resize",refit);
+$$(".ovl").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("open")}));
+
+/* ---- why modal ---- */
+$("#bWhy").onclick=()=>{
+  $("#whyBody").innerHTML=
+   '<button class="btn tiny dclose" onclick="document.getElementById(\'ovlWhy\').classList.remove(\'open\')">Close</button>'
+  +'<h2>Why does this matter?</h2>'
+  +'<p>A consultation measures <b>a point</b>. A diagnosis is usually <b>a gradient</b>. Almost every difficult decision in unscheduled care comes from that mismatch, and most of the blame that follows comes from people reading a point as if it were the whole line.</p>'
+  +'<h4>What is well supported — every claim links to its source</h4>'
+  +'<ul>'
+  +'<li>Serious illness genuinely does look ordinary early on. In meningococcal disease in children, early features appeared at a median of about 8 hours and the classic features at 13–22 hours — most children were first seen before any of them existed. '+L('thom','Thompson, Lancet 2006')+' '+L('haj','Haj-Hassan, BJGP 2011')+'</li>'
+  +'<li>The most powerful findings in the room are often not measurements. A carer reporting that this illness is <i>different from previous illnesses</i> carried a positive likelihood ratio of 14.4, and the clinician’s own instinct 23.5 — far above any single observation. '+L('vdb10','Van den Bruel, Lancet 2010')+' '+L('vdb12','Van den Bruel, BMJ 2012')+'</li>'
+  +'<li>Patients expect self-limiting illness to be much shorter than it is: a median expectation of 5–7 days for a cough against a pooled mean of 17.8 days. '+L('ebell','Ebell, Ann Fam Med 2013')+'</li>'
+  +'<li>Improvement is frequently not caused by what preceded it. In three-armed trials, improvement in no-treatment arms accounted for roughly a quarter of the total improvement seen in actively treated patients. '+L('krog','Krogsbøll, BMC MRM 2009')+'</li>'
+  +'<li>Prescribing changes beliefs, not just illness. In a randomised trial of prescribing strategies for sore throat, 87% of those given an immediate antibiotic thought antibiotics effective against 55% given none, and 79% intended to reconsult against 54%. '+L('lit97','Little, BMJ 1997')+' '+L('rti25','Reattendance meta-analysis 2025')+'</li>'
+  +'<li>Serious illness does not always announce itself quickly. Cauda equina compression is described as a continuous process on an exponential curve, where “for any given individual, we do not know the gradient of their individual graph”. '+L('ces','Bone & Joint 360')+'</li>'
+  +'<li>Illness can settle and then deteriorate. A sentinel headache precedes 10–43% of aneurysmal subarachnoid haemorrhages, usually within two weeks. '+L('polm','Polmear, Cephalalgia 2003')+'</li>'
+  +'<li>The diagnostic test has a trajectory of its own. CT sensitivity for subarachnoid haemorrhage runs 97% within 6 hours down to 75% at 18–24 hours; testicular salvage runs above 90% within 6 hours down to under 10% after 24. '+L('shed','SHED study')+' '+L('howe','Howe, Transl Androl Urol')+'</li>'
+  +'</ul>'
+  +'<h4>What is a defensible position rather than a proven fact</h4>'
+  +'<ul>'
+  +'<li><b>“You can see a patient too early” is an aphorism, not a finding.</b> The mechanisms behind it are well evidenced; the phrase itself has no trial behind it and no agreed definition. Treat it as a useful frame, not as evidence.</li>'
+  +'<li><b>The severity axis is ordinal and invented.</b> There is no measurable quantity called severity that runs from “well” to “death”. These curves are heuristics for teaching shape, not data. Nobody should read a value off them.</li>'
+  +'<li><b>The candidate futures are illustrative.</b> They are plausible and clinically sensible, but their relative heights and timings are drawn for teaching, not derived from cohort data.</li>'
+  +'<li><b>Safety-netting evidence is thin.</b> The main literature review of safety netting found over half its included citations were expert opinion rather than empirical research. The practice is near-universal and the evidence base is weak — clinicians should know that. '+L('jones','Jones, BJGP 2019')+'</li>'
+  +'</ul>'
+  +'<h4>Where clinicians reasonably disagree</h4>'
+  +'<ul>'
+  +'<li>Whether the correct response to an uninformative early consultation is a defined review, a threshold-lowered referral, or an investigation. All three are defensible and they have very different resource consequences.</li>'
+  +'<li>Whether naming diagnostic uncertainty to patients builds trust or transfers anxiety. The evidence is mixed and probably depends on the patient.</li>'
+  +'<li>Whether the antibiotic-attribution problem justifies withholding a prescription from a patient in front of you who will otherwise reconsult. That is a real trade-off between this patient and the next hundred.</li>'
+  +'</ul>'
+  +'<div class="note"><b>Information governance.</b> Every scenario here is fictional and constructed from scratch. Generic descriptors only. No real patient, consultation or record has been used, adapted or anonymised, and none should be added.</div>'
+  +'<h4>How to use it in a session</h4>'
+  +'<p>Show the crosses and the snapshot cards. Ask the room to commit to a future before revealing. The teaching happens in the two seconds after Reveal, when four curves appear through the same crosses. Then press <b>Who got the credit?</b> — that is where the discussion actually goes.</p>'
+  +'<h4>Reading the graph</h4>'
+  +'<p>Lines carry a <b>number</b> at their right-hand end matching the numbered card, so nothing depends on telling two colours apart. A <b>\u25B4 triangle</b> marks an intervention: where a line falls after one, the treatment did it; where a line falls with no marker, that is the natural course; where a line keeps climbing, nothing turned it. Not every illness resolves, and the graph should not pretend otherwise.</p>'
+  +'<h4>Every source</h4>'
+  +'<div class="refs">'+Object.keys(R).map(function(k){return L(k)}).join('')+'</div>';
+  $("#ovlWhy").classList.add("open");
+};
+
+/* ---- share modal ---- */
+$("#bShare").onclick=()=>{
+  const local=location.protocol==="file:";
+  $("#shareBody").innerHTML=
+   '<button class="btn tiny dclose" onclick="document.getElementById(\'ovlShare\').classList.remove(\'open\')">Close</button>'
+  +'<h2>Sharing this</h2>'
+  +(local
+   ?'<div class="note"><b>This file is open from your own disk, so it has no web address.</b> A QR code cannot be generated, because there is nothing for it to point at.</div>'
+    +'<p>Emailing the <code>.html</code> will not work either — bare HTML attachments, and zips containing them, are quarantined by Outlook, NHSmail and Defender as a standard phishing vector. That is a filter policy, not a virus detection, so renaming it does not help.</p>'
+    +'<h4>What does work</h4><ul>'
+    +'<li><b>Host the single file once</b> — GitHub Pages is the usual route — then share the address and generate a QR from that.</li>'
+    +'<li>A Teams channel Files tab, or a OneDrive share link. Both make people download rather than open, but they arrive.</li>'
+    +'</ul><p>Once it is hosted, open this dialog from the hosted copy and a QR code appears here.</p>'
+   :'<p>Point a phone at this:</p><div id="qr" style="margin:12px 0"></div>'
+    +'<p style="word-break:break-all">'+location.href+'</p>');
+  $("#ovlShare").classList.add("open");
+  if(!local){
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+    s.onload=()=>{try{new QRCode(document.getElementById("qr"),
+      {text:location.href,width:180,height:180})}catch(e){}};
+    document.head.appendChild(s);
+  }
+};
+
+/* ---- init ---- */
+try{const th=localStorage.getItem("traj.theme");if(th)document.documentElement.setAttribute("data-theme",th)}catch(e){}
+load(0);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>refit());
+</script>
+</body>
+</html>
