@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-GB" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Andrew Gatenby — teaching tools</title>
+<meta name="description" content="Interactive teaching tools for medical students and GP trainees. All cases fictional.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --f:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --f-disp:'Fraunces',Georgia,serif;
+  --bg:#eef3fa; --ink:#22364f; --dim:#5a6d87; --faint:#5f6d8f;
+  --glass:rgba(255,255,255,.72); --line:rgba(120,150,185,.32);
+  --solid:#ffffff;
+  --shadow:0 1px 2px rgba(34,54,79,.06),0 4px 12px rgba(34,54,79,.06);
+  --gold:#a97400;
+}
+html[data-theme="dark"]{
+  --bg:#121a2e; --ink:#eaf0ff; --dim:#9aa8c7; --faint:#8497ad;
+  --glass:rgba(255,255,255,.045); --line:rgba(255,255,255,.10);
+  --solid:#1a2440; --shadow:none; --gold:#ffc83d;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);
+  font-family:var(--f);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;align-items:center;padding:0 20px}
+.wrap{width:100%;max-width:880px;flex:1 1 auto;display:flex;flex-direction:column}
+
+header{display:flex;align-items:flex-start;gap:16px;padding:56px 2px 10px}
+h1{font-family:var(--f-disp);font-weight:600;font-size:34px;letter-spacing:-.015em;
+  margin:0 0 6px;line-height:1.15}
+.lede{color:var(--dim);font-size:15.5px;margin:0;max-width:62ch}
+.hgrow{flex:1 1 auto;min-width:0}
+.btn{background:var(--glass);border:1px solid var(--line);border-radius:8px;
+  padding:6px 11px;font-family:var(--f);font-size:12.5px;font-weight:500;color:inherit;
+  cursor:pointer;transition:background .16s,transform .16s;white-space:nowrap;
+  backdrop-filter:blur(10px)}
+.btn:hover{background:rgba(120,150,185,.13);transform:translateX(2px)}
+
+.sect{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);margin:34px 2px 12px}
+
+.grid{display:grid;gap:12px}
+a.card{display:block;text-decoration:none;color:inherit;
+  border:1px solid var(--line);border-left:4px solid var(--ac,var(--line));
+  border-radius:13px;background:var(--glass);backdrop-filter:blur(10px);
+  box-shadow:var(--shadow);padding:16px 18px;
+  transition:transform .18s,background .18s}
+a.card:hover{transform:translateX(3px);background:rgba(120,150,185,.10)}
+.chip{display:inline-block;padding:2.5px 9px;border-radius:99px;color:#fff;
+  background:var(--ac,#6c7a93);font-size:9.5px;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;margin-bottom:9px}
+.ct{font-family:var(--f-disp);font-weight:600;font-size:19px;letter-spacing:-.01em;
+  margin:0 0 5px;line-height:1.25}
+.cs{color:var(--dim);font-size:14px;margin:0;max-width:64ch}
+.go{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;
+  color:var(--gold);letter-spacing:.01em}
+
+footer{border-top:1px solid var(--line);margin-top:46px;padding:18px 2px 40px;
+  color:var(--faint);font-size:12.5px;line-height:1.6}
+footer p{margin:0 0 6px;max-width:72ch}
+footer b{color:var(--dim);font-weight:600}
+
+@media (max-width:560px){
+  header{padding-top:36px}
+  h1{font-size:27px}
+  .grid{gap:10px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="hgrow">
+      <h1>Teaching tools</h1>
+      <p class="lede">Interactive exercises for medical students and GP trainees, built by
+        Andrew Gatenby. Each one runs in the browser &mdash; nothing to install, nothing to sign in to.</p>
+    </div>
+    <button class="btn" id="theme" title="Light or dark">&#9682;</button>
+  </header>
+
+  <!-- ==========================================================
+       To add a tool: copy one <a class="card"> block, change the
+       href, the --ac colour, the chip, the title and the line of
+       description. Accent colours that work here:
+       #c25a48 red · #17a2a0 teal · #33506e deep · #b569c4 purple
+       #7c8cff violet · #35a65a green · #e0a32e gold · #6c7a93 slate
+       ========================================================== -->
+
+  <div class="sect">Available now</div>
+  <div class="grid">
+
+    <a class="card" href="/trajectory/" style="--ac:#17a2a0">
+      <span class="chip">Diagnostic reasoning</span>
+      <p class="ct">The Trajectory</p>
+      <p class="cs">What one consultation can and cannot tell you. Fifteen situations where
+        several very different futures are all consistent with exactly what the clinician saw &mdash;
+        and a look at who ends up being credited with the outcome.</p>
+      <span class="go">Open &rarr;</span>
+    </a>
+
+    <a class="card" href="/triage/" style="--ac:#c25a48">
+      <span class="chip">Urgency and workload</span>
+      <p class="ct">Triage &mdash; three levels</p>
+      <p class="cs">How urgent is each call, what would you actually do about it, and the messy
+        ones where experienced GPs disagree. Commit to a decision first, then reveal a reasoned
+        answer with references.</p>
+      <span class="go">Open &rarr;</span>
+    </a>
+
+  </div>
+
+  <footer>
+    <p><b>All cases are fictional and written for teaching.</b> No real patient, consultation or
+      record has been used, adapted or anonymised in any tool on this site.</p>
+    <p>References orient you to the evidence; they are not a substitute for local pathways or your
+      own senior review. Where answers are defensible positions rather than the only correct ones,
+      the tool says so.</p>
+    <p>Andrew Gatenby &middot; these are personal teaching materials and do not represent any
+      employing organisation.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var r=document.documentElement;
+  try{
+    var s=localStorage.getItem('agt.theme');
+    if(s) r.setAttribute('data-theme',s);
+    else if(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)
+      r.setAttribute('data-theme','dark');
+  }catch(e){}
+  document.getElementById('theme').addEventListener('click',function(){
+    var d=r.getAttribute('data-theme')==='dark';
+    r.setAttribute('data-theme',d?'light':'dark');
+    try{localStorage.setItem('agt.theme',d?'light':'dark')}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
