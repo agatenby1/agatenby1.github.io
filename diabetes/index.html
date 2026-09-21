@@ -277,7 +277,7 @@ function drawMain(){
  const bt2=el('text',{x:bx+6,y:m.t+4,'text-anchor':'start'},g);bt2.textContent=narrow?'NHSBSA':'NHSBSA ▸';
  // gap note
  const gi0=ROWS.findIndex(r=>r.y==='2006/07'),gi1=ROWS.findIndex(r=>r.y==='2009/10');
- if(!narrow){const gt=el('text',{x:(xC(gi0)+xC(gi1))/2,y:m.t+ph-6,'text-anchor':'middle','font-size':10.5},g);gt.textContent='% share not stated in summary releases';gt.style.fill=css('--faint');}
+ if(!narrow){const gt=el('text',{x:(xC(gi0)+xC(gi1))/2,y:yP(12.5),'text-anchor':'middle','font-size':10.5},g);gt.textContent='% share not stated';const gt2=el('text',{x:(xC(gi0)+xC(gi1))/2,y:yP(12.5)+13,'text-anchor':'middle','font-size':10.5},g);gt2.textContent='in summary releases';gt2.style.fill=css('--faint');gt.style.fill=css('--faint');}
  // bars
  ROWS.forEach((r,i)=>{let y0=m.t+ph;
   segsOf(r).forEach(s=>{const h=(s.h/Pmax)*ph;y0-=h;
