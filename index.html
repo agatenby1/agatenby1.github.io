@@ -45,12 +45,12 @@ h1{font-family:var(--f-disp);font-weight:600;font-size:34px;letter-spacing:-.015
   color:var(--faint);margin:34px 2px 12px}
 
 .grid{display:grid;gap:12px}
-a.card{display:block;text-decoration:none;color:inherit;
+a.card,div.card{display:block;text-decoration:none;color:inherit;
   border:1px solid var(--line);border-left:4px solid var(--ac,var(--line));
   border-radius:13px;background:var(--glass);backdrop-filter:blur(10px);
   box-shadow:var(--shadow);padding:16px 18px;
   transition:transform .18s,background .18s}
-a.card:hover{transform:translateX(3px);background:rgba(120,150,185,.10)}
+a.card:hover,div.card:hover{transform:translateX(3px);background:rgba(120,150,185,.10)}
 .chip{display:inline-block;padding:2.5px 9px;border-radius:99px;color:#fff;
   background:var(--ac,#6c7a93);font-size:9.5px;font-weight:600;letter-spacing:.03em;
   text-transform:uppercase;margin-bottom:9px}
@@ -59,6 +59,19 @@ a.card:hover{transform:translateX(3px);background:rgba(120,150,185,.10)}
 .cs{color:var(--dim);font-size:14px;margin:0;max-width:64ch}
 .go{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;
   color:var(--gold);letter-spacing:.01em}
+
+/* a card whose body is one link, with extra links sitting on top */
+div.card{position:relative}
+a.stretch{text-decoration:none;color:inherit;display:block}
+a.stretch::after{content:"";position:absolute;inset:0;z-index:1}
+.levels{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:7px;
+  margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+.levels .lab{font-size:11.5px;color:var(--faint);align-self:center;margin-right:3px}
+a.lvl{text-decoration:none;font-size:12.5px;font-weight:600;color:var(--ink);
+  background:var(--glass);border:1px solid var(--line);border-radius:99px;
+  padding:5px 12px;transition:background .15s,transform .15s;white-space:nowrap}
+a.lvl:hover{background:var(--ac,#6c7a93);color:#fff;border-color:transparent;
+  transform:translateY(-1px)}
 
 footer{border-top:1px solid var(--line);margin-top:46px;padding:18px 2px 40px;
   color:var(--faint);font-size:12.5px;line-height:1.6}
@@ -75,64 +88,77 @@ footer b{color:var(--dim);font-weight:600}
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="hgrow">
-      <h1>Teaching tools</h1>
-      <p class="lede">Interactive exercises for medical students and GP trainees, built by
-        Andrew Gatenby. Each one runs in the browser &mdash; nothing to install, nothing to sign in to.</p>
-    </div>
-    <button class="btn" id="theme" title="Light or dark">&#9682;</button>
-  </header>
+<header>
+  <div class="hgrow">
+    <h1>Teaching tools</h1>
+    <p class="lede">Interactive exercises for medical students and GP trainees, built by
+    Andrew Gatenby. Each one runs in the browser &mdash; nothing to install, nothing to sign in to.</p>
+  </div>
+  <button class="btn" id="theme" title="Light or dark">&#9682;</button>
+</header>
 
-  <!-- ==========================================================
-       To add a tool: copy one <a class="card"> block, change the
-       href, the --ac colour, the chip, the title and the line of
-       description. Accent colours that work here:
-       #c25a48 red · #17a2a0 teal · #33506e deep · #b569c4 purple
-       #7c8cff violet · #35a65a green · #e0a32e gold · #6c7a93 slate
-       ========================================================== -->
+<!-- ==========================================================
+  To add a tool: copy one <a class="card"> block, change the
+  href, the --ac colour, the chip, the title and the line of
+  description. Accent colours that work here:
+    #c25a48 red · #17a2a0 teal · #33506e deep · #b569c4 purple
+    #7c8cff violet · #35a65a green · #e0a32e gold · #6c7a93 slate
 
-  <div class="sect">Available now</div>
-  <div class="grid">
+  The triage card is a <div class="card"> rather than an <a>,
+  because it carries extra links inside it. The <a class="stretch">
+  makes the whole card clickable; anything inside .levels sits
+  on top of that and keeps its own link.
+========================================================== -->
 
-    <a class="card" href="/trajectory/" style="--ac:#17a2a0">
-      <span class="chip">Diagnostic reasoning</span>
-      <p class="ct">The Trajectory</p>
-      <p class="cs">What one consultation can and cannot tell you. Fifteen situations where
-        several very different futures are all consistent with exactly what the clinician saw &mdash;
-        and a look at who ends up being credited with the outcome.</p>
-      <span class="go">Open &rarr;</span>
-    </a>
+<div class="sect">Available now</div>
+<div class="grid">
 
-    <a class="card" href="/diabetes/" style="--ac:#7c8cff">
-      <span class="chip">NHS spending</span>
-      <p class="ct">Diabetes prescribing in England</p>
-      <p class="cs">Twenty-one years of official data: what diabetes prescribing costs, what
-        share of the prescribing budget it takes, and where the 2025/26 money went &mdash; including
-        what tirzepatide now accounts for. Every figure linked to its source.</p>
-      <span class="go">Open &rarr;</span>
-    </a>
+  <a class="card" href="/trajectory/" style="--ac:#17a2a0">
+    <span class="chip">Diagnostic reasoning</span>
+    <p class="ct">The Trajectory</p>
+    <p class="cs">What one consultation can and cannot tell you. Fifteen situations where
+    several very different futures are all consistent with exactly what the clinician saw &mdash;
+    and a look at who ends up being credited with the outcome.</p>
+    <span class="go">Open &rarr;</span>
+  </a>
 
-    <a class="card" href="/triage/" style="--ac:#c25a48">
+  <a class="card" href="/diabetes/" style="--ac:#7c8cff">
+    <span class="chip">NHS spending</span>
+    <p class="ct">Diabetes prescribing in England</p>
+    <p class="cs">Twenty-one years of official data: what diabetes prescribing costs, what
+    share of the prescribing budget it takes, and where the 2025/26 money went &mdash; including
+    what tirzepatide now accounts for. Every figure linked to its source.</p>
+    <span class="go">Open &rarr;</span>
+  </a>
+
+  <div class="card" style="--ac:#c25a48">
+    <a class="stretch" href="/triage/">
       <span class="chip">Urgency and workload</span>
       <p class="ct">Triage &mdash; three levels</p>
       <p class="cs">How urgent is each call, what would you actually do about it, and the messy
-        ones where experienced GPs disagree. Commit to a decision first, then reveal a reasoned
-        answer with references.</p>
+      ones where experienced GPs disagree. Commit to a decision, write down why, then reveal a
+      reasoned answer with references.</p>
       <span class="go">Open &rarr;</span>
     </a>
-
+    <div class="levels">
+      <span class="lab">Straight to a level, for students:</span>
+      <a class="lvl" href="/triage/?level=1&amp;student=1">1 &middot; How urgent?</a>
+      <a class="lvl" href="/triage/?level=2&amp;student=1">2 &middot; What do you do?</a>
+      <a class="lvl" href="/triage/?level=3&amp;student=1">3 &middot; The messy ones</a>
+    </div>
   </div>
 
-  <footer>
-    <p><b>All cases are fictional and written for teaching.</b> No real patient, consultation or
-      record has been used, adapted or anonymised in any tool on this site.</p>
-    <p>References orient you to the evidence; they are not a substitute for local pathways or your
-      own senior review. Where answers are defensible positions rather than the only correct ones,
-      the tool says so.</p>
-    <p>Andrew Gatenby &middot; these are personal teaching materials and do not represent any
-      employing organisation.</p>
-  </footer>
+</div>
+
+<footer>
+  <p><b>All cases are fictional and written for teaching.</b> No real patient, consultation or
+  record has been used, adapted or anonymised in any tool on this site.</p>
+  <p>References orient you to the evidence; they are not a substitute for local pathways or your
+  own senior review. Where answers are defensible positions rather than the only correct ones,
+  the tool says so.</p>
+  <p>Andrew Gatenby &middot; these are personal teaching materials and do not represent any
+  employing organisation.</p>
+</footer>
 
 </div>
 
