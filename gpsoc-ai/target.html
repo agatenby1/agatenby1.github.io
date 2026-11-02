@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Acceptability Target</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one exhibit. The target fills the screen; clicking a segment opens a single panel over it. Nothing else on the page. */
+:root{
+  --f:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --bg:#f3f5f9; --panel:#ffffff; --ink:#15233a; --dim:#4d5d78; --muted:#7d8aa3;
+  --line:#d6dde8; --grid:#e3e8f0; --axis:#b0bbcd; --scrim:rgba(21,35,58,.55);
+  --link:#8a5f00; --tool:#15233a;
+  --c1:#e0533f; --c2:#19b3a6; --c3:#3a7bdc; --c4:#b45bd0; --c5:#4bb75a; --c6:#f0a132; --c7:#8a7cf5; --c8:#ec4f86; --disp:'Anton',Impact,'Arial Narrow',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1120; --panel:#131b2c; --ink:#eef3ff; --dim:#aab7d0; --muted:#8190ab;
+  --line:#2a3854; --grid:#223049; --axis:#4a5b7c; --scrim:rgba(3,7,16,.7); --link:#ffc83d; --tool:#eef3ff; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --panel:#131b2c; --ink:#eef3ff; --dim:#aab7d0; --muted:#8190ab;
+  --line:#2a3854; --grid:#223049; --axis:#4a5b7c; --scrim:rgba(3,7,16,.7); --link:#ffc83d; --tool:#eef3ff; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+a{color:var(--link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.stage{height:100%;display:flex;flex-direction:column;padding-block:16px 12px;padding-inline:20px;gap:8px}
+.head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.head h1{font-size:18px;font-weight:600;letter-spacing:-.01em;margin:0}
+.head p{margin:0;color:var(--dim);font-size:13px;flex:1 1 300px;min-width:0}
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer}
+.btn:hover{background:var(--grid)}
+.fig{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.zoom{position:absolute;right:0;top:0;display:flex;flex-direction:column;gap:4px;z-index:2}
+.zoom .btn{width:30px;height:30px;padding:0;font-size:16px;background:rgba(16,24,42,.8)}
+#t{cursor:grab}#t.pan{cursor:grabbing}
+#t{height:100%;width:100%;max-height:calc(100vh - 120px);display:block}
+.seg{cursor:pointer}
+.seg path{transition:fill-opacity .2s,transform .25s;transform-origin:0 0;stroke:rgba(255,255,255,.55);stroke-width:1}
+.seg:hover path{fill-opacity:.62;transform:scale(1.02)}
+.seg.open path{fill-opacity:.78;transform:scale(1.03);stroke:#fff}
+.seg text{font:600 13.5px var(--f);letter-spacing:.14em;text-transform:uppercase;fill:#fff;pointer-events:none;paint-order:stroke;stroke:rgba(5,10,24,.75);stroke-width:4px;stroke-linejoin:round}
+.seg .n{font:500 11px var(--f);fill:rgba(255,255,255,.7);letter-spacing:.12em}
+#globe{position:fixed;inset:0;width:100%;height:100%;z-index:-1;display:block}
+body{background:#060a16!important;color:#eef3ff}
+:root{--bg:#060a16;--ink:#eef3ff;--dim:#aab7d0;--muted:#8190ab;--panel:#10182a;--line:#2a3854;--grid:#223049;--link:#ffc83d;--tool:#ffffff;--scrim:rgba(3,7,16,.72);color-scheme:dark}
+.core{fill:rgba(6,10,22,.85);stroke:rgba(255,255,255,.5)}
+.head h1{font:600 20px var(--f);letter-spacing:.12em;text-transform:uppercase}
+.ctop h2{font:600 26px var(--f)!important;letter-spacing:.06em;text-transform:uppercase}
+.fact b{font:600 24px var(--f)!important;letter-spacing:-.01em}
+.poly{stroke-width:2;stroke-dasharray:none}
+.pt{r:5.5}
+.ring{fill:none;stroke:#fff;stroke-opacity:.28;stroke-width:.8}
+.rl{font:400 10.5px var(--f);fill:var(--muted)}
+.core{fill:var(--panel);stroke:var(--line)}
+.core-t{font:600 13px var(--f);fill:var(--ink)}
+.core-s{font:400 11px var(--f);fill:var(--dim)}
+.hit{cursor:grab;fill:transparent}
+.hit:focus-visible{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 2;outline:none}
+.pt{fill:var(--tool);stroke:var(--panel);stroke-width:2}
+.poly{fill:var(--tool);fill-opacity:.08;stroke:var(--tool);stroke-width:2;stroke-linejoin:round}
+.foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--muted)}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:3px 11px;font-size:12px;font-weight:500;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip b{font-variant-numeric:tabular-nums}
+
+.ovl{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(820px,100%);max-height:88vh;overflow:auto;display:flex;flex-direction:column}
+.band{height:6px;border-radius:14px 14px 0 0;background:var(--ac)}
+.cbody{padding:18px 22px 20px;display:flex;flex-direction:column;gap:14px}
+.ctop{display:flex;align-items:flex-start;gap:12px}
+.ctop .k{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ac)}
+.ctop h2{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:2px 0 0;line-height:1.2}
+.ctop .q{color:var(--dim);font-size:14px;margin:2px 0 0}
+.x{margin-left:auto;background:none;border:1px solid var(--line);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px;line-height:1}
+.lede{font-size:15px;line-height:1.6;margin:0;max-width:62ch}
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.fact{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.fact b{display:block;font-size:20px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.fact span{display:block;color:var(--dim);font-size:12px;margin-top:4px}
+.fact a{display:block;font-size:11.5px;margin-top:5px}
+.media{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.vid{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-decoration:none;color:inherit}
+.vid:hover{background:var(--grid)}
+.vid .play{width:34px;height:34px;border-radius:50%;background:var(--ac);flex:0 0 auto;display:grid;place-items:center}
+.vid .play::after{content:'';border-left:11px solid #fff;border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
+.vid b{display:block;font-size:13px;font-weight:600}
+.vid span{display:block;color:var(--dim);font-size:12px}
+.place{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:12px;font-size:12.5px;color:var(--dim)}
+.place input{width:100%;accent-color:var(--ink);margin:0}
+.place b{color:var(--ink);font-variant-numeric:tabular-nums}
+.L0 .cbody{background:var(--ac);color:#fff}.L0 .lede,.L0 .q,.L0 .k{color:#fff!important}.L0 .fact{background:rgba(255,255,255,.14);border-color:transparent}.L0 .fact span{color:rgba(255,255,255,.85)}.L0 a{color:#fff}.L0 .x,.L0 .btn{color:#fff;border-color:rgba(255,255,255,.4);background:transparent}.L0 .nav,.L0 .place{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.3)}.L0 .place b{color:#fff}.L0 .place input{accent-color:#fff}
+.L1 .hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}.L1 .hero b{font:400 72px var(--disp);color:var(--ac);line-height:1}.L1 .hero span{font-size:15px;color:var(--dim)}.L1 .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+.L2 .tl{border-left:3px solid var(--ac);padding-left:14px;display:grid;gap:12px}.L2 .tl div{position:relative}.L2 .tl div::before{content:'';position:absolute;left:-20px;top:6px;width:11px;height:11px;border-radius:50%;background:var(--ac)}.L2 .tl b{font:400 20px var(--disp);display:block}.L2 .tl span{color:var(--dim);font-size:13px}
+.L3 .split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}.L3 .split .facts{grid-template-columns:minmax(0,1fr)}.L3 .lede{font-size:18px;line-height:1.45}
+.L4 .facts{grid-template-columns:repeat(3,minmax(0,1fr))}.L4 .fact{background:var(--ac);border:0;color:#fff}.L4 .fact span,.L4 .fact a{color:rgba(255,255,255,.9)}.L4 .fact b{font-size:40px!important}
+.L5 .lede{font:400 28px var(--disp);line-height:1.2;max-width:none;color:var(--ac)}.L5 .facts{grid-template-columns:repeat(3,minmax(0,1fr))}
+.L6 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.L6 .cards .fact{border-left:5px solid var(--ac)}.L6 .cards .fact:nth-child(1){grid-column:span 2}
+.L7 .big{text-align:center;padding:10px 0}.L7 .big b{font:400 60px var(--disp);display:block;color:var(--ac);line-height:1}.L7 .big span{color:var(--dim)}.L7 .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:640px){.L3 .split,.L1 .hero{grid-template-columns:minmax(0,1fr)}}
+.nav{display:flex;gap:6px;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+@media (max-width:640px){.facts,.media{grid-template-columns:minmax(0,1fr)}.cbody{padding:14px 16px 16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<canvas id="globe" aria-hidden="true"></canvas>
+</head>
+<body>
+<div class="stage">
+  <div class="head">
+    <h1>Good AI in healthcare</h1>
+    <p>Eight conditions a tool has to meet. The nearer the centre, the more acceptable. Click any segment to find out more.</p>
+    
+  </div>
+  <div class="fig">
+    <div class="zoom"><button class="btn" id="zIn" aria-label="Zoom in">+</button><button class="btn" id="zOut" aria-label="Zoom out">−</button><button class="btn" id="zRst" aria-label="Reset zoom">⟲</button></div>
+    <svg id="t" viewBox="-400 -330 800 660" role="img" aria-labelledby="tT"><title id="tT">Acceptability target</title>
+      <rect x="-2000" y="-2000" width="4000" height="4000" fill="transparent"/><g id="segs"></g><g id="rings"></g><g id="tool"></g>
+      <circle class="core" r="52"/>
+      <text class="core-t" y="2" text-anchor="middle" style="font:400 15px var(--disp);letter-spacing:.04em">ACCEPTABLE</text>
+      <text class="core-s" y="18" text-anchor="middle">healthcare AI</text>
+    </svg>
+  </div>
+  <div class="foot"><span>Draw a tool:</span><span id="chips"></span></div>
+</div>
+
+<div class="ovl" id="ovl" hidden><div class="card" id="card" role="dialog" aria-modal="true"></div></div>
+
+<script>
+const SEG=[
+ {n:'Ownership',q:'Do we trust the people who own it?',c:'--c1',lede:'Judge owners on their record: court findings, regulator action, how they treat critics.',
+  facts:[['£330m','NHS England data platform contract to Palantir, 7 years (Nov 2023)','https://digitalhealth.net/2023/11/nhs-england-awards-330m-federated-data-platform-contract-to-palantir','Digital Health'],['$6m','Meta and YouTube liable for youth harm, LA jury; 70% to Meta (25 Mar 2026)','https://6abc.com/18771272/','ABC News'],['$375m','Civil penalty against Meta, New Mexico (24 Mar 2026)','https://www.sec.gov/Archives/edgar/data/0001326801/000162828026050705/meta-20260630.htm','Meta 10-Q'],['470 days','Meta\'s private arbitration gag on Careless People author before she sued','https://www.panmacmillan.com/news/careless-people-author-sarah-wynn-williams-sues-meta','Pan Macmillan'],['Jul 2025','xAI deletes Grok posts praising Hitler','https://www.semafor.com/article/07/09/2025/elon-musks-xai-deletes-antisemitic-grok-posts','Semafor'],['Jan 2026','Ofcom formal investigation into X over Grok sexualised imagery','https://ofcom.org.uk/online-safety/illegal-and-harmful-content/ofcom-launches-investigation-into-x-over-grok-sexualised-imagery','Ofcom'],['>14m','Projected extra deaths by 2030 if USAID cuts continue (Lancet model)','https://ph.ucla.edu/news-events/news/research-finds-more-14-million-preventable-deaths-2030-if-usaid-defunding','UCLA / Lancet'],['120 days','Project Meridian: Musk co-leads Pentagon future-of-war study (30 Sep 2026)','https://axios.com/2026/09/30/pentagon-hegseth-musk-gingrich-anduril','Axios']],
+  media:[['Wynn-Williams testifies to the US Senate','Transcript, 9 April 2025','https://techpolicy.press/transcript-former-exec-sarah-wynnwilliams-testifies-on-facebooks-courtship-of-china'],['Careless People','Sarah Wynn-Williams, 2025','https://www.panmacmillan.com/news/careless-people-author-sarah-wynn-williams-sues-meta']]},
+ {n:'Evidence',q:'Does it work, and who checked?',c:'--c2',lede:'Real practice, not benchmarks. Independent analysis. A named person accountable when it is wrong.',
+  facts:[['−16%','Diagnostic errors with AI Consult, 39,849 visits, 15 clinics, Nairobi','https://openai.com/index/ai-clinical-copilot-penda-health','OpenAI / Penda'],['−13%','Treatment errors, same study','https://openai.com/index/ai-clinical-copilot-penda-health','OpenAI / Penda'],['−32%','History-taking omissions','https://citizen.digital/news/ai-tool-cuts-diagnostic-errors-by-16-in-kenyan-clinics-study-finds-n367615','Citizen Digital'],['Vendor','Funded and co-analysed by OpenAI','https://openai.com/index/ai-clinical-copilot-penda-health','OpenAI / Penda'],['28.4 → 22.4%','Unaided adenoma detection before → after routine AI, 4 Polish centres','https://wrap.warwick.ac.uk/id/eprint/191005','Lancet Gastro Hep'],['−6.0 pts','Absolute change, 95% CI −10.5 to −1.6','https://wrap.warwick.ac.uk/id/eprint/191005','Lancet Gastro Hep'],['Class I','Minimum MHRA device class NHS England expects for ambient scribes','https://www.england.nhs.uk/long-read/guidance-on-the-use-of-ai-enabled-ambient-scribing-products-in-health-and-care-settings/','NHS England'],['DCB0129 / 0160','Clinical safety standards that apply','https://www.england.nhs.uk/long-read/guidance-on-the-use-of-ai-enabled-ambient-scribing-products-in-health-and-care-settings/','NHS England']],
+  media:[['NHS England: ambient scribing guidance','April 2025','https://www.england.nhs.uk/long-read/guidance-on-the-use-of-ai-enabled-ambient-scribing-products-in-health-and-care-settings/'],['MHRA AI Airlock','Regulatory sandbox, May 2024','https://digitalhealth.net/2024/05/ai-airlock-regulatory-sandbox-launched-by-mhra']]},
+ {n:'Data',q:'Whose law can reach the data?',c:'--c3',lede:'Not where a company is from: which governments can compel it.',
+  facts:[['China','Hosted DeepSeek app: subject to Chinese law','https://therecord.media/italy-blocks-chinese-ai-tool-deepseek-over-privacy-concerns','The Record'],['30 Jan 2025','Italy\'s Garante blocks DeepSeek','https://therecord.media/italy-blocks-chinese-ai-tool-deepseek-over-privacy-concerns','The Record'],['2018','US CLOUD Act: US providers compellable for data held abroad','https://www.orrick.com/en/Insights/2018/04/The-CLOUD-Act-Explained','Orrick'],['UK + US','Palantir FDP: NHS data, US vendor','https://digitalhealth.net/2023/11/nhs-england-awards-330m-federated-data-platform-contract-to-palantir','Digital Health'],['UK only','Open-weights model on NHS hardware: nothing leaves','https://www.orrick.com/en/Insights/2018/04/The-CLOUD-Act-Explained','Orrick'],['DaSH','Grampian Data Safe Haven: accredited local trusted research environment','https://www.abdn.ac.uk/research/digital/platforms/safe-haven-dash/','Univ. Aberdeen']],
+  media:[['Grampian Data Safe Haven','How a regional safe haven works','https://ijpds.org/article/view/1817']]},
+ {n:'Security',q:'What happens when it fails, or is turned against us?',c:'--c4',lede:'Population-scale data plus biological capability. Score: honeypot? fallback? published safety testing?',
+  facts:[['Jun 2024','Synnovis ransomware attack on NHS pathology, south-east London','https://www.digitalhealth.net/2025/06/patient-dies-as-a-result-of-cyber-attack-on-nhs-pathology-provider/','Digital Health'],['1 death','Linked by King\'s College Hospital to the outage (Jun 2025)','https://www.digitalhealth.net/2025/06/patient-dies-as-a-result-of-cyber-attack-on-nhs-pathology-provider/','Digital Health'],['2017','WannaCry: the earlier NHS precedent','https://www.pslhub.org/news/first-nhs-cyber-attack-death-confirmed-r8598/','Patient Safety Learning'],['Feb 2026','International AI Safety Report: bio and cyber capability rising','https://www.techuk.org/resource/the-release-of-the-international-ai-safety-report-2026-navigating-rapid-ai-advancement-and-emerging-risks.html','techUK'],['AutoWarCom','Autonomous Warfare Command announced alongside Meridian','https://newrepublic.com/post/216045/pete-hegseth-elon-musk-newt-gingrich-help-lead-military','New Republic']],
+  media:[['International AI Safety Report 2026','Summary of findings','https://www.techuk.org/resource/the-release-of-the-international-ai-safety-report-2026-navigating-rapid-ai-advancement-and-emerging-risks.html']]},
+ {n:'Environment',q:'Is the energy proportionate to the good it does?',c:'--c5',lede:'Per prompt: trivial. Build-out: a grid problem. Purpose decides whether it is worth it.',
+  facts:[['0.24 Wh','Median Gemini text prompt (May 2025)','https://cloud.google.com/blog/products/infrastructure/measuring-the-environmental-impact-of-ai-inference','Google'],['0.03 g','CO₂e per median prompt; 0.26 mL water','https://cloud.google.com/blog/products/infrastructure/measuring-the-environmental-impact-of-ai-inference','Google'],['33×','Fall in energy per prompt over 12 months','https://cloud.google.com/blog/products/infrastructure/measuring-the-environmental-impact-of-ai-inference','Google'],['986 kg','CO₂, London–New York return, per passenger ≈ 33m prompts','https://www.theguardian.com/environment/ng-interactive/2019/jul/19/carbon-calculator-how-taking-one-flight-emits-as-much-as-many-people-do-in-a-year','Guardian / Atmosfair'],['4.5 kWh','One tumble-dryer cycle ≈ 19,000 prompts','https://markselectrical.co.uk/laundry/guides/tumble-dryer-running-costs','Energy Saving Trust'],['945 TWh','Data-centre electricity, 2030 projection, > Japan today','https://www.iea.org/reports/energy-and-ai','IEA'],['1.5%','Data centres\' share of global electricity, 2024','https://scientificamerican.com/article/ai-will-drive-doubling-of-data-center-energy-demand-by-2030','Sci Am / IEA'],['2024','Nobel Prize in Chemistry for AlphaFold','https://www.nobelprize.org/prizes/chemistry/2024/summary/','Nobel Prize']],
+  media:[['The Thinking Game','DeepMind, AlphaFold; free, 90 min','https://blog.google/technology/google-deepmind/the-thinking-game'],['Using ChatGPT is not bad for the environment','Andy Masley, cheat sheet','https://andymasley.substack.com/p/a-cheat-sheet-for-conversations-about'],['AI footprint, Aug 2025','Hannah Ritchie','https://hannahritchie.substack.com/p/ai-footprint-august-2025']]},
+ {n:'Workforce',q:'What does it do to our people and their skills?',c:'--c6',lede:'It absorbs demand and admin first. The skill you need to check it is the skill it erodes.',
+  facts:[['2016','Hinton: "stop training radiologists"','https://joshuagans.substack.com/p/radiologists-are-the-canaries-in','Gans'],['32%','UK clinical radiology consultant shortfall, 2025','https://www.rcr.ac.uk/news-policy/workforce-censuses/2025-clinical-radiology-workforce-census-report/','RCR'],['£362m','Radiology outsourcing, insourcing, locums, 2025','https://www.dotmed.com/news/story/66397','DOTmed / RCR'],['2×','Complex imaging demand growth vs workforce growth','https://rcr.ac.uk/cr-census','RCR'],['28%','NHS staff over 10 h/week on admin','https://www.sbs.nhs.uk/news/over-a-quarter-of-nhs-staff-lose-more-than-10-hours-a-week-to-admin-new-survey-finds/','NHS SBS'],['220,000','FTE-equivalent of that admin time','https://www.sbs.nhs.uk/news/over-a-quarter-of-nhs-staff-lose-more-than-10-hours-a-week-to-admin-new-survey-finds/','NHS SBS'],['−6 pts','Unaided polyp detection after AI exposure','https://wrap.warwick.ac.uk/id/eprint/191005','Lancet Gastro Hep'],['3 risks','Deskilling, never-skilling, mis-skilling','https://www.nejm.org/doi/full/10.1056/NEJMra2503232','NEJM 2025']],
+  media:[['Deskilling, never-skilling, mis-skilling','NEJM framework, 2025','https://www.nejm.org/doi/full/10.1056/NEJMra2503232'],['Explainer for students','OnlineMedEd','https://www.onlinemeded.com/blog/deskilling-never-skilling-mis-skilling-ai-medical-education'],['Hinton in 2016','What he said and what happened','https://joshuagans.substack.com/p/radiologists-are-the-canaries-in']]},
+ {n:'Understanding',q:'Do people know what kind of AI it is?',c:'--c7',lede:'Prediction, generative text, generative image. Most objections are to the third.',
+  facts:[['3','Types: predictive, generative text, generative image/video','https://www.onlinemeded.com/blog/deskilling-never-skilling-mis-skilling-ai-medical-education','OnlineMedEd'],['75%','Clinician adoption, Nairobi, with coaching and feedback','https://citizen.digital/news/ai-tool-cuts-diagnostic-errors-by-16-in-kenyan-clinics-study-finds-n367615','Citizen Digital'],['200m','Views of The Thinking Game in 4 weeks','https://www.webull.ca/news-detail/14114471340508160','Benzinga'],['2024','Nobel Prize for a non-generative AI','https://www.nobelprize.org/prizes/chemistry/2024/summary/','Nobel Prize'],['Mis-skilling','Taking AI errors on as your own reasoning','https://www.onlinemeded.com/blog/deskilling-never-skilling-mis-skilling-ai-medical-education','OnlineMedEd']],
+  media:[['The Thinking Game','The AI story most people have never heard','https://blog.google/technology/google-deepmind/the-thinking-game']]},
+ {n:'Global',q:'Does it help everyone, or only rich countries?',c:'--c8',lede:'Where the alternative is nobody, the calculation changes.',
+  facts:[['2021','WHO recommends CAD chest X-ray reading for TB, may replace human readers','https://www.who.int/publications/i/item/9789240110373','WHO'],['6','CAD products meeting WHO standard, June 2025','https://www.who.int/publications/i/item/9789240110373','WHO'],['15+','Ages covered by the recommendation','https://www.who.int/publications/i/item/9789240110373','WHO'],['−16%','Diagnostic errors, Kenyan primary care','https://openai.com/index/ai-clinical-copilot-penda-health','OpenAI / Penda'],['4 years','Training of Penda clinicians (clinical officers, not doctors)','https://tollbit.time.com/7304457/ai-prevents-medical-errors-clinics/','TIME'],['>14m','Projected deaths by 2030 from aid cuts: the context','https://ph.ucla.edu/news-events/news/research-finds-more-14-million-preventable-deaths-2030-if-usaid-defunding','UCLA / Lancet'],['Darker skin','Under-represented in open skin-cancer image datasets','https://www.oxcode.ox.ac.uk/news/datasets-used-to-train-ai-to-detect-skin-cancer-are-insufficient-and-lacking-in-pictures-of-darker-skin','Oxford']],
+  media:[['WHO CAD policy statement','2025','https://www.who.int/publications/i/item/9789240110373'],['AI in Kenyan clinics','TIME','https://tollbit.time.com/7304457/ai-prevents-medical-errors-clinics/']]}
+];
+const TOOLS=[['AlphaFold',[3,1,0.5,3.5,3,1,4,1]],['Heidi',[3,5.5,3.5,3.5,1,4,3.5,6]],['ChatGPT',[5.5,6,6,4,3,5.5,6,3]],['Palantir FDP',[8,6,5.5,4,1.5,3.5,7,6]],['DeepSeek',[6,6.5,8.5,6,3,5.5,6,3.5]],['Grok',[9.5,8.5,8.5,7,6,6,6.5,8]]];
+let st={tool:2,d:TOOLS.map(t=>t[1].slice()),open:-1};
+try{const r=JSON.parse(localStorage.getItem('aiacc.v3'));if(r&&r.d)st=Object.assign(st,r);}catch(e){}
+const save=()=>{try{localStorage.setItem('aiacc.v3',JSON.stringify({tool:st.tool,d:st.d}));}catch(e){}};
+const $=id=>document.getElementById(id);
+const R=238,rad=a=>a*Math.PI/180,SW=[1.45,.85,1.05,.8,1.3,1.15,.7,.7],SA=(()=>{const t=SW.reduce((a,b)=>a+b,0);let a=-110,o=[];SW.forEach(w=>{const s=w/t*360;o.push([a+s/2,a,a+s]);a+=s;});return o;})(),ang=i=>SA[i][0],RO=[.98,1.08,.9,1.04,1.1,.86,1.0,1.06],P=(r,a)=>[r*Math.cos(rad(a)),r*Math.sin(rad(a))],xy=p=>p[0].toFixed(1)+','+p[1].toFixed(1);
+function wedge(r1,r2,a1,a2,seed){let d='M'+xy(P(r1,a1));const n=14;for(let k=0;k<=n;k++){const a=a1+(a2-a1)*k/n;const j=1+Math.sin(seed*7+k*2.3)*.012+Math.cos(seed*3+k*1.1)*.008;d+='L'+xy(P(r2*j,a));}d+='L'+xy(P(r1,a2))+`A${r1} ${r1} 0 0 0 ${xy(P(r1,a1))}Z`;return d;}
+function draw(){
+  $('segs').innerHTML=SEG.map((s,i)=>{const a=ang(i),p=P(R*RO[i]+34,a),c=Math.cos(rad(a));const anc=Math.abs(c)<.3?'middle':c>0?'start':'end';const dy=Math.abs(c)<.3?(Math.sin(rad(a))<0?-8:26):9;const rot=[0,0,0,0,0,0,0,0][i];
+    return `<g class="seg${st.open===i?' open':''}" data-i="${i}" role="button" tabindex="0" aria-label="${s.n}"><path d="${wedge(52,R*RO[i],SA[i][1]+2,SA[i][2]-2,i)}" fill="var(${s.c})" fill-opacity=".58"/><g transform="rotate(${rot} ${p[0].toFixed(1)} ${p[1].toFixed(1)})"><text x="${p[0].toFixed(1)}" y="${(p[1]+dy).toFixed(1)}" text-anchor="${anc}">${s.n}</text><text class="n" x="${p[0].toFixed(1)}" y="${(p[1]+dy+18).toFixed(1)}" text-anchor="${anc}">0${i+1}</text></g></g>`;}).join('');
+  $('rings').innerHTML=[.25,.5,.75].map(k=>`<circle class="ring" r="${52+(R-52)*k}"/>`).join('')+"";
+  const d=st.d[st.tool],pts=SEG.map((_,i)=>P(52+(R-52)*d[i]/10,ang(i)));
+  $('tool').innerHTML=`<polygon class="poly" points="${pts.map(xy).join(' ')}"/>`+pts.map((p,i)=>`<circle class="pt" r="6" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}"/><circle class="hit" r="14" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" data-i="${i}" tabindex="0" role="slider" aria-label="${TOOLS[st.tool][0]} on ${SEG[i].n}" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${d[i]}"/>`).join('');
+  $('chips').innerHTML=TOOLS.map((t,k)=>`<button class="chip${k===st.tool?' on':''}" data-t="${k}">${t[0]} <b>${(st.d[k].reduce((a,b)=>a+b,0)/8).toFixed(1)}</b></button>`).join(' ');
+}
+function openSeg(i){st.open=i;const s=SEG[i],d=st.d[st.tool][i];
+  const F=f=>`<div class="fact"><b>${f[0]}</b><span>${f[1]}</span><a href="${f[2]}" target="_blank" rel="noopener">${f[3]} ↗</a></div>`;
+  const M=s.media.length?`<div class="media">${s.media.map(m=>`<a class="vid" href="${m[2]}" target="_blank" rel="noopener"><span class="play"></span><span><b>${m[0]}</b><span>${m[1]}</span></span></a>`).join('')}</div>`:'';
+  const f=s.facts,body=[
+   ()=>`<p class="lede">${s.lede}</p><div class="facts">${f.map(F).join('')}</div>${M}`,
+   ()=>`<div class="hero"><b>${f[0][0]}</b><span>${f[0][1]} <a href="${f[0][2]}" target="_blank" rel="noopener">${f[0][3]} ↗</a></span></div><p class="lede">${s.lede}</p><div class="facts">${f.slice(1).map(F).join('')}</div>${M}`,
+   ()=>`<p class="lede">${s.lede}</p><div class="tl">${f.map(x=>`<div><b>${x[0]}</b><span>${x[1]} · <a href="${x[2]}" target="_blank" rel="noopener">${x[3]} ↗</a></span></div>`).join('')}</div>${M}`,
+   ()=>`<div class="split"><p class="lede">${s.lede}</p><div class="facts">${f.map(F).join('')}</div></div>${M}`,
+   ()=>`<div class="facts">${f.map(F).join('')}</div><p class="lede">${s.lede}</p>${M}`,
+   ()=>`<p class="lede">${s.lede}</p>${M}<div class="facts">${f.map(F).join('')}</div>`,
+   ()=>`<div class="cards">${f.map(F).join('')}</div><p class="lede">${s.lede}</p>${M}`,
+   ()=>`<div class="big"><b>${f[0][0]}</b><span>${f[0][1]} · <a href="${f[0][2]}" target="_blank" rel="noopener">${f[0][3]} ↗</a></span></div><div class="facts">${f.slice(1).map(F).join('')}</div><p class="lede">${s.lede}</p>${M}`][i]();
+  $('card').className='card L'+i;
+  $('card').innerHTML=`<div class="band" style="--ac:var(${s.c})"></div><div class="cbody" style="--ac:var(${s.c})">
+  <div class="ctop"><div><div class="k">Segment ${i+1} of 8</div><h2>${s.n}</h2><p class="q">${s.q}</p></div><button class="x" id="x" aria-label="Close">×</button></div>
+  ${body}
+  <div class="place"><span>${TOOLS[st.tool][0]} here</span><input type="range" min="0" max="10" step="0.5" value="${d}" id="rg" aria-label="Distance from centre"><b id="rv">${d.toFixed(1)}</b></div>
+  <div class="nav"><button class="btn" id="pv">‹ ${SEG[(i+7)%8].n}</button><span>← → to move between segments · Esc to close</span><button class="btn" id="nx">${SEG[(i+1)%8].n} ›</button></div></div>`;
+  $('ovl').hidden=false;$('x').onclick=close;$('pv').onclick=()=>openSeg((i+7)%8);$('nx').onclick=()=>openSeg((i+1)%8);
+  $('rg').oninput=e=>{st.d[st.tool][i]=+e.target.value;$('rv').textContent=(+e.target.value).toFixed(1);save();draw();};
+  $('x').focus();draw();}
+function close(){st.open=-1;$('ovl').hidden=true;draw();}
+const svg=$('t');let drag=null;
+let Z={k:1,x:0,y:0};const VB=[-400,-330,800,660];
+function applyZ(){Z.k=Math.max(1,Math.min(6,Z.k));const w=VB[2]/Z.k,hh=VB[3]/Z.k;const mx=(VB[2]-w)/2,my=(VB[3]-hh)/2;Z.x=Math.max(-mx,Math.min(mx,Z.x));Z.y=Math.max(-my,Math.min(my,Z.y));svg.setAttribute('viewBox',`${VB[0]+mx+Z.x} ${VB[1]+my+Z.y} ${w} ${hh}`);}
+$('zIn').onclick=()=>{Z.k*=1.4;applyZ();};$('zOut').onclick=()=>{Z.k/=1.4;applyZ();};$('zRst').onclick=()=>{Z={k:1,x:0,y:0};applyZ();};
+svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();const fx=(e.clientX-r.left)/r.width-.5,fy=(e.clientY-r.top)/r.height-.5;const k0=Z.k;Z.k*=e.deltaY<0?1.15:1/1.15;Z.k=Math.max(1,Math.min(6,Z.k));const w0=VB[2]/k0,w1=VB[2]/Z.k,h0=VB[3]/k0,h1=VB[3]/Z.k;Z.x+=fx*(w0-w1);Z.y+=fy*(h0-h1);applyZ();},{passive:false});
+let pan=null,pinch=null;const touches=new Map();
+svg.addEventListener('pointerdown',e=>{if(e.target.closest('.hit')||e.target.closest('.seg'))return;touches.set(e.pointerId,[e.clientX,e.clientY]);if(touches.size===1){pan={x:e.clientX,y:e.clientY,zx:Z.x,zy:Z.y};svg.classList.add('pan');}else if(touches.size===2){const a=[...touches.values()];pinch={d:Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]),k:Z.k};pan=null;}svg.setPointerCapture(e.pointerId);});
+svg.addEventListener('pointermove',e=>{if(touches.has(e.pointerId))touches.set(e.pointerId,[e.clientX,e.clientY]);if(pinch&&touches.size===2){const a=[...touches.values()];Z.k=pinch.k*Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])/pinch.d;applyZ();return;}if(!pan)return;const r=svg.getBoundingClientRect();Z.x=pan.zx-(e.clientX-pan.x)*(VB[2]/Z.k)/r.width;Z.y=pan.zy-(e.clientY-pan.y)*(VB[3]/Z.k)/r.height;applyZ();});
+const endPan=e=>{touches.delete(e.pointerId);if(touches.size<2)pinch=null;if(touches.size===0){pan=null;svg.classList.remove('pan');}};svg.addEventListener('pointerup',endPan);svg.addEventListener('pointercancel',endPan);
+svg.addEventListener('pointerdown',e=>{const h=e.target.closest('.hit');if(!h)return;e.preventDefault();drag=+h.dataset.i;svg.setPointerCapture(e.pointerId);});
+svg.addEventListener('pointermove',e=>{if(drag==null)return;const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());const a=rad(ang(drag));const pr=q.x*Math.cos(a)+q.y*Math.sin(a);st.d[st.tool][drag]=Math.round(Math.max(0,Math.min(10,(pr-52)/(R-52)*10))*2)/2;draw();});
+const end=()=>{if(drag!=null){drag=null;save();}};svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
+document.addEventListener('click',e=>{const s=e.target.closest('.seg');if(s){openSeg(+s.dataset.i);return;}const c=e.target.closest('[data-t]');if(c){st.tool=+c.dataset.t;save();draw();return;}if(e.target===$('ovl'))close();});
+document.addEventListener('keydown',e=>{const s=e.target.closest&&e.target.closest('.seg');if(s&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openSeg(+s.dataset.i);return;}
+  const h=e.target.closest&&e.target.closest('.hit');if(h){const k={ArrowRight:.5,ArrowUp:.5,ArrowLeft:-.5,ArrowDown:-.5}[e.key];if(k){e.preventDefault();const i=+h.dataset.i;st.d[st.tool][i]=Math.max(0,Math.min(10,st.d[st.tool][i]+k));save();draw();svg.querySelector(`.hit[data-i="${i}"]`).focus();}return;}
+  if($('ovl').hidden)return;if(e.key==='Escape')close();else if(e.key==='ArrowRight')openSeg((st.open+1)%8);else if(e.key==='ArrowLeft')openSeg((st.open+7)%8);});
+draw();
+(function(){
+const cv=document.getElementById('globe'),g=cv.getContext('2d');
+const TW=720,TH=360,tex=new Uint8ClampedArray(TW*TH*4);
+const hs=n=>{n=Math.sin(n)*43758.5453;return n-Math.floor(n);};
+function vn(x,y,z){const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi,s=t=>t*t*(3-2*t);const u=s(xf),v=s(yf),w=s(zf);const H=(i,j,k)=>hs(i*127.1+j*311.7+k*74.7);
+ const l=(a,b,t)=>a+(b-a)*t;return l(l(l(H(xi,yi,zi),H(xi+1,yi,zi),u),l(H(xi,yi+1,zi),H(xi+1,yi+1,zi),u),v),l(l(H(xi,yi,zi+1),H(xi+1,yi,zi+1),u),l(H(xi,yi+1,zi+1),H(xi+1,yi+1,zi+1),u),v),w);}
+function fbm(x,y,z){let a=0,f=1.6,amp=.5;for(let o=0;o<5;o++){a+=vn(x*f+9,y*f+9,z*f+9)*amp;f*=2.1;amp*=.5;}return a;}
+for(let j=0;j<TH;j++){const la=(j/TH-.5)*Math.PI;for(let i=0;i<TW;i++){const lo=(i/TW)*Math.PI*2;const x=Math.cos(la)*Math.cos(lo),y=Math.sin(la),z=Math.cos(la)*Math.sin(lo);
+ const n=fbm(x,y,z),ice=Math.abs(la)>1.25;const land=n>.52;const k=(j*TW+i)*4;
+ let r,gg,b;if(ice){r=200;gg=214;b=228;}else if(land){const t=(n-.52)*6;r=52+40*t;gg=82+46*t;b=70+30*t;}else{const d=Math.max(0,(.52-n)*2);r=14+18*(1-d);gg=42+40*(1-d);b=92+70*(1-d);}
+ tex[k]=r;tex[k+1]=gg;tex[k+2]=b;tex[k+3]=255;}}
+const off=document.createElement('canvas'),oc=off.getContext('2d');let S=0,img,t0=performance.now();
+function size(){cv.width=innerWidth;cv.height=innerHeight;S=Math.min(520,Math.floor(Math.max(innerWidth,innerHeight)*.42));off.width=off.height=S;img=oc.createImageData(S,S);}
+addEventListener('resize',size);size();
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(now){const t=(now-t0)/1000;const rot=reduce?0:t*.035;const d=img.data,R=S/2,lx=-.55,ly=.4,lz=.73;
+ for(let py=0;py<S;py++){const y=(py-R)/R;for(let px=0;px<S;px++){const x=(px-R)/R;const k=(py*S+px)*4;const rr=x*x+y*y;if(rr>1){d[k+3]=0;continue;}
+  const z=Math.sqrt(1-rr);const lo=Math.atan2(z,x)+rot,la=Math.asin(y);let u=((lo/(Math.PI*2))%1+1)%1,v=la/Math.PI+.5;const ti=((Math.floor(v*TH)*TW)+Math.floor(u*TW))*4;
+  const nd=Math.max(0,x*lx+y*ly+z*lz);const rim=Math.pow(1-z,3)*.5;const sp=Math.pow(nd,22)*(.35+.25*Math.sin(t*1.3+x*6));const sh=.12+nd*1.05;
+  d[k]=Math.min(255,tex[ti]*sh+sp*120+rim*40);d[k+1]=Math.min(255,tex[ti+1]*sh+sp*140+rim*80);d[k+2]=Math.min(255,tex[ti+2]*sh+sp*160+rim*140);d[k+3]=255;}}
+ oc.putImageData(img,0,0);g.clearRect(0,0,cv.width,cv.height);
+ const D=Math.min(cv.width,cv.height)*1.18,cx=cv.width*.5-D/2,cy=cv.height*.56-D/2;
+ g.globalAlpha=.7;g.imageSmoothingEnabled=true;g.drawImage(off,cx,cy,D,D);g.globalAlpha=1;
+ const grd=g.createRadialGradient(cv.width/2,cv.height/2,cv.height*.2,cv.width/2,cv.height/2,cv.height*.9);grd.addColorStop(0,'rgba(6,10,22,.35)');grd.addColorStop(1,'rgba(6,10,22,.6)');g.fillStyle=grd;g.fillRect(0,0,cv.width,cv.height);
+ if(!reduce)requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
